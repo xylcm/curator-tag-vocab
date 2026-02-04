@@ -1,0 +1,141 @@
+[
+    {
+        "id": 10,
+        "category": "People",
+        "available": true,
+        "translations": {
+            "zh_CN": "人物"
+        }
+    },
+    {
+        "id": 9,
+        "category": "Pets",
+        "available": true,
+        "translations": {
+            "zh_CN": "宠物"
+        }
+    },
+    {
+        "id": 6,
+        "category": "Animals",
+        "available": true,
+        "translations": {
+            "zh_CN": "动物"
+        }
+    },
+    {
+        "id": 4,
+        "category": "Landscape",
+        "available": true,
+        "translations": {
+            "zh_CN": "风景"
+        }
+    },
+    {
+        "id": 13,
+        "category": "Sports",
+        "available": true,
+        "translations": {
+            "zh_CN": "运动"
+        }
+    },
+
+    {
+        "id": 15,
+        "category": "Architecture",
+        "available": true,
+        "translations": {
+            "zh_CN": "建筑"
+        }
+    },
+    {
+        "id": 8,
+        "category": "Nature",
+        "available": true,
+        "translations": {
+            "zh_CN": "自然"
+        }
+    },
+    {
+        "id": 16,
+        "category": "Events",
+        "available": true,
+        "translations": {
+            "zh_CN": "事件"
+        }
+    },
+    {
+        "id": 17,
+        "category": "Emotion",
+        "available": true,
+        "translations": {
+            "zh_CN": "情绪"
+        }
+    },
+    {
+        "id": 14,
+        "category": "Celebrations",
+        "available": true,
+        "translations": {
+            "zh_CN": "庆祝"
+        }
+    },
+
+    {
+        "id": 1,
+        "category": "Color",
+        "available": true,
+        "translations": {
+            "zh_CN": "色彩"
+        }
+    },
+    {
+        "id": 2,
+        "category": "Objects",
+        "available": true,
+        "translations": {
+            "zh_CN": "物品"
+        }
+    },
+    {
+        "id": 3,
+        "category": "Places",
+        "available": true,
+        "translations": {
+            "zh_CN": "地方"
+        }
+    },
+
+    {
+        "id": 11,
+        "category": "Food & Drink",
+        "available": true,
+        "translations": {
+            "zh_CN": "食物 & 饮品"
+        }
+    },
+    {
+        "id": 12,
+        "category": "Transportation",
+        "available": true,
+        "translations": {
+            "zh_CN": "交通"
+        }
+    },
+    {
+        "id": 7,
+        "category": "Documents & Screenshots",
+        "available": true,
+        "translations": {
+            "zh_CN": "文档 & 截图"
+        }
+    },
+    {
+        "id": 5,
+        "category": "Other",
+        "available": false,
+        "translations": {
+            "zh_CN": "Other"
+        }
+    }
+]

@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "curator-tag-vocab"
+version = "0.1.0"
+description = "图片标签词库 Web 管理后台"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+    {name = "curator-tag-vocab"}
+]
+dependencies = [
+    "flask>=2.3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+]
+
+[tool.setuptools]
+packages = ["src"]
+
+[tool.setuptools.package-data]
+src = ["templates/*.html", "static/**/*"]

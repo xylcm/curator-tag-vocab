@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}标签管理系统{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1>标签管理系统</h1>
+    
+    <div class="stats">
+        <div class="stat-item">
+            <span class="stat-label">总标签数</span>
+            <span class="stat-value total" id="stat-total">-</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">可用</span>
+            <span class="stat-value available" id="stat-available">-</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">不可用</span>
+            <span class="stat-value unavailable" id="stat-unavailable">-</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">已删除</span>
+            <span class="stat-value deleted" id="stat-deleted">-</span>
+        </div>
+    </div>
+</div>
+
+<div class="controls-wrapper">
+    <div class="controls">
+        <input type="text" id="search-input" placeholder="搜索标签..." style="min-width: 200px;">
+        
+        <select id="deleted-select">
+            <option value="active" selected>未删除</option>
+            <option value="all">全部</option>
+            <option value="deleted">已删除</option>
+        </select>
+
+        <select id="filter-select">
+            <option value="all">全部标签</option>
+            <option value="available" selected>可用标签</option>
+            <option value="unavailable">不可用标签</option>
+        </select>
+
+        <select id="category-select">
+            <option value="">全部分类</option>
+        </select>
+
+        <select id="sort-select">
+            <option value="tag" selected>按名称排序</option>
+            <option value="translation">按翻译排序</option>
+            <option value="updated_at">按更新时间排序</option>
+            <option value="id">按ID排序</option>
+        </select>
+
+        <select id="order-select">
+            <option value="asc">升序</option>
+            <option value="desc">降序</option>
+        </select>
+
+        <button class="btn btn-primary" id="load-btn">加载标签</button>
+        <button class="btn btn-success" id="add-btn">添加标签</button>
+    </div>
+</div>
+
+<div class="container">
+    <div id="tags-container">
+        <div class="loading">正在加载标签...</div>
+    </div>
+
+    <div class="pagination" id="pagination" style="display: none;">
+        <button class="btn btn-secondary" id="prev-btn" disabled>上一页</button>
+        <div class="page-info">
+            <span id="page-info">第 1 页，共 1 页</span>
+        </div>
+        <button class="btn btn-secondary" id="next-btn" disabled>下一页</button>
+    </div>
+</div>
+
+<div id="add-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">添加标签</div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">标签名称 *</label>
+                <input type="text" class="form-input" id="new-tag-name" placeholder="输入标签名称">
+            </div>
+            <div class="form-group">
+                <label class="form-label">上下文</label>
+                <textarea class="form-textarea" id="new-tag-context" placeholder="输入标签上下文"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">分类</label>
+                <select class="form-input" id="new-tag-category">
+                    <option value="">选择分类</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">子分类</label>
+                <input type="text" class="form-input" id="new-tag-sub-category" placeholder="输入子分类">
+            </div>
+            <div class="form-group">
+                <label class="form-label">中文翻译</label>
+                <input type="text" class="form-input" id="new-tag-translation-zh" placeholder="输入中文翻译">
+            </div>
+            <div class="form-group">
+                <label class="form-label">英文翻译</label>
+                <input type="text" class="form-input" id="new-tag-translation-en" placeholder="Enter English translation">
+            </div>
+            <div class="form-group">
+                <label class="form-checkbox">
+                    <input type="checkbox" id="new-tag-available" checked>
+                    <span>可用</span>
+                </label>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" onclick="closeAddModal()">取消</button>
+            <button class="btn btn-success" onclick="saveNewTag()">保存</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/tags.js') }}"></script>
+{% endblock %}

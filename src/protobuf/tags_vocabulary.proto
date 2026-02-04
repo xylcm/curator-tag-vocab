@@ -1,0 +1,39 @@
+// Imagecho Curator Tag Vocabulary
+//
+// Compile: protoc --python_out=. tags_vocabulary.proto
+// Requires: protoc >= 3.0
+
+syntax = "proto3";
+
+package curator.protobuf;
+
+message Translation {
+  string lang = 1;     // Language code: "zh_CN", "en", "ja"
+  string text = 2;     // Translated text
+}
+
+message Tag {
+  int64 id = 1;                         // Tag ID 
+  string name = 2;                       // Tag name
+  string context = 3;                    // Context for disambiguation
+  string category = 4;                   // Tag category
+  string sub_category = 5;               // Tag sub-category
+  repeated Translation translations = 6; // Multi-language translations
+}
+
+message Category {
+  int64 id = 1;
+  string name = 2;
+  bool available = 3;
+  int32 order = 4;
+  repeated Translation translations = 5;
+}
+
+message TagVocabulary {
+  string version = 1;        // Version: "2025.12.19"
+  string modified_time = 2;
+  int32 vocab_size = 3;      // Total number of tags
+  repeated Tag tags = 4;     // All tags (count via tags.size())
+  repeated Category categories = 5; 
+}
+
