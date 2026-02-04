@@ -3,7 +3,9 @@ const API = {
     tags: '/tagging/tags/api/tags',
     tag: (id) => `/tagging/tags/api/tags/${id}`,
     categories: '/tagging/tags/api/categories',
-    categoriesConfig: '/tagging/tags/api/categories/config'
+    categoriesConfig: '/tagging/tags/api/categories/config',
+    exportProtobuf: '/tagging/tags/api/export/protobuf',
+    exportCsv: '/tagging/tags/api/export/csv'
 };
 
 let tags = [];
@@ -30,7 +32,7 @@ async function loadCategories() {
         const categorySelect = document.getElementById('category-select');
         const currentValue = categorySelect.value;
         
-        categorySelect.innerHTML = '<option value="">全部分类</option>';
+        categorySelect.innerHTML = '<option value="">All Categories</option>';
         
         data.categories.forEach(category => {
             const option = document.createElement('option');
@@ -564,6 +566,82 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
+async function exportProtobuf() {
+    try {
+        showToast('正在导出 Protobuf...', 'info');
+        const response = await fetch(API.exportProtobuf);
+        
+        if (!response.ok) {
+            throw new Error('Export failed');
+        }
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        
+        // 从响应头获取文件名
+        const contentDisposition = response.headers.get('content-disposition');
+        let filename = 'tags_vocabulary.pb';
+        if (contentDisposition) {
+            const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+            if (matches != null && matches[1]) {
+                filename = matches[1].replace(/['"]/g, '');
+            }
+        }
+        
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        showToast('Protobuf 导出成功', 'success');
+    } catch (err) {
+        console.error('Failed to export protobuf:', err);
+        showToast('导出失败：网络错误', 'error');
+    }
+}
+
+async function exportCsv() {
+    try {
+        showToast('正在导出 CSV...', 'info');
+        const response = await fetch(API.exportCsv);
+        
+        if (!response.ok) {
+            throw new Error('Export failed');
+        }
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        
+        // 从响应头获取文件名
+        const contentDisposition = response.headers.get('content-disposition');
+        let filename = 'tags_vocabulary.csv';
+        if (contentDisposition) {
+            const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+            if (matches != null && matches[1]) {
+                filename = matches[1].replace(/['"]/g, '');
+            }
+        }
+        
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        showToast('CSV 导出成功', 'success');
+    } catch (err) {
+        console.error('Failed to export CSV:', err);
+        showToast('导出失败：网络错误', 'error');
+    }
+}
+
 const escapeDiv = document.createElement('div');
 function escapeHtml(text) {
     if (text === null || text === undefined) return '';
@@ -575,6 +653,8 @@ function escapeHtml(text) {
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('load-btn').onclick = () => loadTags(1);
     document.getElementById('add-btn').onclick = openAddModal;
+    document.getElementById('export-protobuf-btn').onclick = exportProtobuf;
+    document.getElementById('export-csv-btn').onclick = exportCsv;
     document.getElementById('deleted-select').onchange = () => {
         loadStats();
         loadTags(1);

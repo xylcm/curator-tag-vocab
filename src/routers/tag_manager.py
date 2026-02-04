@@ -1,7 +1,10 @@
-from flask import Blueprint, render_template, jsonify, request
+from flask import Blueprint, render_template, jsonify, request, send_file
 from src.db import VocabDB
+from src.protobuf import tags_vocabulary_pb2
 import json
 import os
+from datetime import datetime
+import tempfile
 
 bp = Blueprint('tag_manager', __name__, url_prefix='/tagging/tags')
 
@@ -222,4 +225,121 @@ def create_tag():
         'success': True,
         'id': tag_id
     })
+
+@bp.route('/api/export/protobuf')
+def export_protobuf():
+    """导出 Protobuf 格式的词汇表"""
+    try:
+        db = get_db()
+        tags = db.query("SELECT * FROM tags_vocab WHERE is_deleted = 0 AND available = 1")
+        
+        # 去重
+        seen_tags = set()
+        unique_tags = []
+        for tag in tags:
+            if tag['tag'] not in seen_tags:
+                seen_tags.add(tag['tag'])
+                unique_tags.append(tag)
+        
+        unique_tags = sorted(unique_tags, key=lambda x: x['tag'])
+        
+        # 创建 protobuf 对象
+        vocab = tags_vocabulary_pb2.TagVocabulary()
+        vocab.version = datetime.now().strftime("%Y%m%d_%H%M%S")
+        vocab.modified_time = datetime.now().isoformat()
+        
+        for tag_data in unique_tags:
+            tag_msg = vocab.tags.add()
+            tag_msg.name = tag_data['tag']
+            tag_msg.context = tag_data.get('context') or ''
+            tag_msg.category = tag_data.get('category') or ''
+            
+            translations = tag_data.get('translations', {})
+            if isinstance(translations, str):
+                translations = json.loads(translations)
+            
+            if translations:
+                for lang_code, translation_text in translations.items():
+                    trans_msg = tag_msg.translations.add()
+                    trans_msg.lang = lang_code
+                    trans_msg.text = translation_text
+        
+        vocab.vocab_size = len(unique_tags)
+        
+        # 添加分类信息
+        config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'config', 'categories.json')
+        with open(config_path, 'r', encoding='utf-8') as f:
+            categories = json.load(f)
+            for i, category in enumerate(categories, 1):
+                category_msg = vocab.categories.add()
+                category_msg.id = category['id']
+                category_msg.order = i
+                category_msg.name = category['category']
+                category_msg.available = category['available']
+                for lang_code, translation_text in category['translations'].items():
+                    trans_msg = category_msg.translations.add()
+                    trans_msg.lang = lang_code
+                    trans_msg.text = translation_text
+        
+        # 写入临时文件
+        temp_file = tempfile.NamedTemporaryFile(mode='wb', delete=False, suffix='.pb')
+        temp_file.write(vocab.SerializeToString())
+        temp_file.close()
+        
+        filename = f"tags_vocabulary_{vocab.version}.pb"
+        
+        return send_file(
+            temp_file.name,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='application/octet-stream'
+        )
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@bp.route('/api/export/csv')
+def export_csv():
+    """导出 CSV 格式的词汇表"""
+    try:
+        db = get_db()
+        tags = db.query("SELECT * FROM tags_vocab WHERE is_deleted = 0 AND available = 1")
+        
+        # 去重
+        seen_tags = set()
+        unique_tags = []
+        for tag in tags:
+            if tag['tag'] not in seen_tags:
+                seen_tags.add(tag['tag'])
+                unique_tags.append(tag)
+        
+        unique_tags = sorted(unique_tags, key=lambda x: x['tag'])
+        
+        # 创建临时文件
+        temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.csv', encoding='utf-8')
+        temp_file.write('en\tzh_CN\tcategory\n')
+        
+        for tag_data in unique_tags:
+            translations = tag_data.get('translations', {})
+            if isinstance(translations, str):
+                translations = json.loads(translations)
+            
+            tag_cn = translations.get('zh_CN', '') if translations else ''
+            tag_en = tag_data['tag']
+            category = tag_data.get('category', '')
+            temp_file.write(f"{tag_en}\t{tag_cn}\t{category}\n")
+        
+        temp_file.close()
+        
+        filename = f"tags_vocabulary_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        
+        return send_file(
+            temp_file.name,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='text/csv'
+        )
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 

@@ -146,6 +146,17 @@ body {
     border-color: #d0d0d0;
 }
 
+.btn-info {
+    background: #e3f2ff;
+    color: #007aff;
+    border: 1px solid #b8dcff;
+}
+
+.btn-info:hover {
+    background: #d0e8ff;
+    border-color: #9fceff;
+}
+
 .btn-small {
     padding: 8px 14px;
     font-size: 13px;
@@ -536,6 +547,10 @@ input[type="text"]::placeholder {
 
 .toast.error {
     background: #ff3b30;
+}
+
+.toast.info {
+    background: #007aff;
 }
 
 @keyframes slideIn {

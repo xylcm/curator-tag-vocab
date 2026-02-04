@@ -1,26 +1,26 @@
 {% extends "base.html" %}
 
-{% block title %}标签管理系统{% endblock %}
+{% block title %}Curator Tag Vocabulary{% endblock %}
 
 {% block content %}
 <div class="header">
-    <h1>标签管理系统</h1>
+    <h1>Curator Tag Vocabulary</h1>
     
     <div class="stats">
         <div class="stat-item">
-            <span class="stat-label">总标签数</span>
+            <span class="stat-label">Total Tags</span>
             <span class="stat-value total" id="stat-total">-</span>
         </div>
         <div class="stat-item">
-            <span class="stat-label">可用</span>
+            <span class="stat-label">Available</span>
             <span class="stat-value available" id="stat-available">-</span>
         </div>
         <div class="stat-item">
-            <span class="stat-label">不可用</span>
+            <span class="stat-label">Unavailable</span>
             <span class="stat-value unavailable" id="stat-unavailable">-</span>
         </div>
         <div class="stat-item">
-            <span class="stat-label">已删除</span>
+            <span class="stat-label">Deleted</span>
             <span class="stat-value deleted" id="stat-deleted">-</span>
         </div>
     </div>
@@ -28,44 +28,46 @@
 
 <div class="controls-wrapper">
     <div class="controls">
-        <input type="text" id="search-input" placeholder="搜索标签..." style="min-width: 200px;">
+        <input type="text" id="search-input" placeholder="Search tags..." style="min-width: 200px;">
         
         <select id="deleted-select">
-            <option value="active" selected>未删除</option>
-            <option value="all">全部</option>
-            <option value="deleted">已删除</option>
+            <option value="active" selected>Not Deleted</option>
+            <option value="all">All</option>
+            <option value="deleted">Deleted</option>
         </select>
 
         <select id="filter-select">
-            <option value="all">全部标签</option>
-            <option value="available" selected>可用标签</option>
-            <option value="unavailable">不可用标签</option>
+            <option value="all">All Tags</option>
+            <option value="available" selected>Available Tags</option>
+            <option value="unavailable">Unavailable Tags</option>
         </select>
 
         <select id="category-select">
-            <option value="">全部分类</option>
+            <option value="">All Categories</option>
         </select>
 
         <select id="sort-select">
-            <option value="tag" selected>按名称排序</option>
-            <option value="translation">按翻译排序</option>
-            <option value="updated_at">按更新时间排序</option>
-            <option value="id">按ID排序</option>
+            <option value="tag" selected>Sort by Name</option>
+            <option value="translation">Sort by Translation</option>
+            <option value="updated_at">Sort by Updated Time</option>
+            <option value="id">Sort by ID</option>
         </select>
 
         <select id="order-select">
-            <option value="asc">升序</option>
-            <option value="desc">降序</option>
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
         </select>
 
-        <button class="btn btn-primary" id="load-btn">加载标签</button>
-        <button class="btn btn-success" id="add-btn">添加标签</button>
+        <button class="btn btn-primary" id="load-btn">Load Tags</button>
+        <button class="btn btn-success" id="add-btn">Add Tag</button>
+        <button class="btn btn-info" id="export-protobuf-btn">Export Protobuf</button>
+        <button class="btn btn-info" id="export-csv-btn">Export CSV</button>
     </div>
 </div>
 
 <div class="container">
     <div id="tags-container">
-        <div class="loading">正在加载标签...</div>
+        <div class="loading">Loading tags...</div>
     </div>
 
     <div class="pagination" id="pagination" style="display: none;">
