@@ -39,7 +39,7 @@ pip install -r requirements.txt
 python src/app_tagging.py
 ```
 
-默认访问地址：`http://localhost:80/tagging/tags`
+默认访问地址：`http://localhost:80/tagging/vocab`
 
 您也可以通过环境变量指定端口：
 
@@ -68,13 +68,15 @@ curator-tag-vocab/
 
 ## API 接口
 
-- `GET /tagging/tags/` - 管理界面
-- `GET /tagging/tags/api/tags` - 获取标签列表
-- `POST /tagging/tags/api/tags` - 创建标签
-- `PUT /tagging/tags/api/tags/<id>` - 更新标签
-- `DELETE /tagging/tags/api/tags/<id>` - 删除标签
-- `GET /tagging/tags/api/stats` - 获取统计信息
-- `GET /tagging/tags/api/categories` - 获取分类列表
+- `GET /tagging/vocab/` - 管理界面
+- `GET /tagging/vocab/api/tags` - 获取标签列表
+- `POST /tagging/vocab/api/tags` - 创建标签
+- `PUT /tagging/vocab/api/tags/<id>` - 更新标签
+- `DELETE /tagging/vocab/api/tags/<id>` - 删除标签
+- `GET /tagging/vocab/api/stats` - 获取统计信息
+- `GET /tagging/vocab/api/categories` - 获取分类列表
+- `GET /tagging/vocab/api/export/protobuf` - 导出 Protobuf 格式
+- `GET /tagging/vocab/api/export/csv` - 导出 CSV 格式
 
 ## 开发
 

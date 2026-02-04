@@ -6,7 +6,7 @@ import os
 from datetime import datetime
 import tempfile
 
-bp = Blueprint('tag_manager', __name__, url_prefix='/tagging/tags')
+bp = Blueprint('tag_manager', __name__, url_prefix='/tagging/vocab')
 
 def get_db():
     return VocabDB()

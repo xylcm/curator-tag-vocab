@@ -1,11 +1,11 @@
 const API = {
-    stats: '/tagging/tags/api/stats',
-    tags: '/tagging/tags/api/tags',
-    tag: (id) => `/tagging/tags/api/tags/${id}`,
-    categories: '/tagging/tags/api/categories',
-    categoriesConfig: '/tagging/tags/api/categories/config',
-    exportProtobuf: '/tagging/tags/api/export/protobuf',
-    exportCsv: '/tagging/tags/api/export/csv'
+    stats: '/tagging/vocab/api/stats',
+    tags: '/tagging/vocab/api/tags',
+    tag: (id) => `/tagging/vocab/api/tags/${id}`,
+    categories: '/tagging/vocab/api/categories',
+    categoriesConfig: '/tagging/vocab/api/categories/config',
+    exportProtobuf: '/tagging/vocab/api/export/protobuf',
+    exportCsv: '/tagging/vocab/api/export/csv'
 };
 
 let tags = [];
@@ -485,7 +485,6 @@ function openAddModal() {
     document.getElementById('add-modal').classList.add('active');
     document.getElementById('new-tag-name').value = '';
     document.getElementById('new-tag-context').value = '';
-    document.getElementById('new-tag-sub-category').value = '';
     document.getElementById('new-tag-translation-zh').value = '';
     document.getElementById('new-tag-translation-en').value = '';
     document.getElementById('new-tag-available').checked = true;
@@ -511,7 +510,6 @@ async function saveNewTag() {
     const name = document.getElementById('new-tag-name').value.trim();
     const context = document.getElementById('new-tag-context').value.trim();
     const category = document.getElementById('new-tag-category').value;
-    const subCategory = document.getElementById('new-tag-sub-category').value.trim();
     const translationZh = document.getElementById('new-tag-translation-zh').value.trim();
     const translationEn = document.getElementById('new-tag-translation-en').value.trim();
     const available = document.getElementById('new-tag-available').checked;
@@ -533,7 +531,7 @@ async function saveNewTag() {
                 tag: name,
                 context: context,
                 category: category,
-                sub_category: subCategory,
+                sub_category: '',
                 translations: translations,
                 available: available
             })

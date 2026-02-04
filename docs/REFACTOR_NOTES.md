@@ -31,7 +31,7 @@ src/
 
 ## 使用方法
 
-应用启动后访问：`http://localhost/tagging/tags`
+应用启动后访问：`http://localhost/tagging/vocab`
 
 ## 迁移步骤
 
