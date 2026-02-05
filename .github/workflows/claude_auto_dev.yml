@@ -1,0 +1,66 @@
+name: Claude Auto-Dev Agent
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  # PRD 功能开发
+  prd-development:
+    if: github.event.label.name == 'gsd:prd'
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Claude PRD Development
+        shell: zsh {0}
+        run: |
+          # 加载 zsh 配置以获取环境变量
+          source ~/.zshrc
+          
+          export PATH=$PATH:/opt/homebrew/bin:/usr/local/bin
+          
+          ISSUE_NUMBER=${{ github.event.issue.number }}
+          
+          echo "🚀 Starting PRD development for Issue #$ISSUE_NUMBER"
+          echo "📂 Working directory: $(pwd)"
+          echo "📋 Files available:"
+          ls -la | head -20
+          
+          # 让 Claude 自主完成整个开发流程
+          claude "@.claude/prd_instructions.md Handle GitHub Issue #$ISSUE_NUMBER" \
+            --non-interactive
+
+  # Bug 修复
+  bugfix:
+    if: github.event.label.name == 'gsd:bugfix'
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Claude Bug Fix
+        shell: zsh {0}
+        run: |
+          # 加载 zsh 配置以获取环境变量
+          source ~/.zshrc
+          
+          export PATH=$PATH:/opt/homebrew/bin:/usr/local/bin
+          
+          ISSUE_NUMBER=${{ github.event.issue.number }}
+          
+          echo "🐛 Starting bug fix for Issue #$ISSUE_NUMBER"
+          echo "📂 Working directory: $(pwd)"
+          echo "📋 Files available:"
+          ls -la | head -20
+          
+          # 让 Claude 自主完成整个修复流程
+          claude "@.claude/bugfix_instructions.md Handle GitHub Issue #$ISSUE_NUMBER" \
+            --non-interactive
