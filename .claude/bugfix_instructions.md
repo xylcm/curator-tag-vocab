@@ -79,21 +79,21 @@ Search for relevant code:
 
 ### 5. Testing & Verification
 
-#### A. Verify the Fix
-- Reproduce the original bug scenario → should now work correctly
-- Test edge cases and boundary conditions
-- Verify no new errors appear in console
-- Check that fix doesn't break existing functionality
+**IMPORTANT**: Since you're running in CI/CD environment, skip manual server testing. Instead:
 
-#### B. Regression Testing
-Test related features:
-- If fixed API endpoint, test all routes
-- If fixed UI component, test all interactions
-- If fixed database operation, verify data integrity
+#### A. Code Review
+- Review your changes for obvious errors
+- Verify the fix addresses the root cause
+- Check that changes are minimal and focused
+- Ensure no new issues introduced
 
-#### C. Cross-browser Testing (if UI bug)
-- Test in Chrome/Safari/Firefox if possible
-- Verify responsive behavior on different screen sizes
+#### B. Static Analysis
+- Check Python syntax if applicable
+- Verify JavaScript syntax if applicable
+- Ensure imports and references are correct
+- Look for potential runtime errors
+
+**Note**: Manual bug reproduction and browser testing will be done by human reviewers after PR is created.
 
 ### 6. Code Quality
 - Remove any debug logging added during investigation
@@ -155,7 +155,7 @@ Fixes #ISSUE_NUMBER"
 ```
 
 ### 9. Update Original Issue
-Comment on the issue with:
+Try to comment on the issue with:
 ```markdown
 🐛 **Bug fix completed!**
 
@@ -166,12 +166,19 @@ Comment on the issue with:
 I've created PR #{PR_NUMBER} with the fix.
 
 **Verification**: 
-✅ Original bug resolved
-✅ Regression tests passed
-✅ No new errors introduced
+✅ Code reviewed and fix implemented
+✅ Changes are minimal and focused
 
 Please review and test the fix.
 ```
+
+**Important**: If commenting on the issue fails due to permissions or API issues, that's OK. The PR has been created successfully.
+
+### 10. Task Completion
+Once the PR is created and pushed successfully:
+- **Exit immediately** - Don't wait for manual testing or approval
+- The human reviewer will reproduce the bug, test the fix, and merge
+- Your job is complete once the code is pushed and PR is created
 
 ## Debugging Techniques
 
@@ -267,7 +274,16 @@ SELECT * FROM tags LIMIT 10;
 
 ## Remember
 - **Be systematic**: Follow logical debugging process
-- **Be thorough**: Test fix extensively before submitting
+- **Be efficient**: Complete the workflow and exit once PR is created
 - **Be transparent**: Document your investigation process
 - **Be focused**: Keep changes minimal and targeted
-- **Be responsible**: Ensure fix doesn't introduce new bugs
+- **Be responsible**: Write quality code, but don't wait for manual testing
+- **Exit when done**: Once PR is created successfully, your task is complete - EXIT immediately
+
+## Final Note
+This is an automated workflow. After creating the PR:
+1. ✅ Your work is DONE
+2. ✅ EXIT the process
+3. ✅ Human reviewers will handle bug verification and merging
+4. ❌ DO NOT wait for server testing or manual verification
+5. ❌ DO NOT wait for PR approval or merge

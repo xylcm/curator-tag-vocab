@@ -49,16 +49,21 @@ git checkout -b claude/prd-issue-{ISSUE_NUMBER}
 - Ensure backward compatibility when possible
 
 ### 5. Testing & Validation
-- **Manual Testing**:
-  - Start the Flask app: `python src/app_tagging.py`
-  - Test all new endpoints via browser or curl
-  - Verify UI changes render correctly
-  - Test edge cases and error scenarios
-  
-- **Check for errors**:
-  - Review Flask console output for errors
-  - Check browser console for JavaScript errors
-  - Verify database operations complete successfully
+
+**IMPORTANT**: Since you're running in CI/CD environment, skip manual server testing. Instead:
+
+- **Code Review**:
+  - Review your changes for obvious errors
+  - Check syntax and logic
+  - Verify imports and dependencies
+  - Ensure code follows project patterns
+
+- **Static Checks**:
+  - Check for Python syntax errors: `python -m py_compile src/**/*.py` (if possible)
+  - Verify file structure is correct
+  - Ensure no sensitive data in code
+
+**Note**: Manual browser testing will be done by human reviewers after PR is created. Your job is to write working code, not to run the server.
 
 ### 6. Code Quality
 - Ensure code is readable and well-commented
@@ -102,7 +107,7 @@ This PR implements the feature requested in #ISSUE_NUMBER.
 ```
 
 ### 9. Update Original Issue
-Comment on the issue with:
+Try to comment on the issue with:
 ```markdown
 ✅ **Feature implementation completed!**
 
@@ -113,6 +118,14 @@ I've created PR #{PR_NUMBER} with the following changes:
 
 Please review the code changes and test the functionality.
 ```
+
+**Important**: If commenting on the issue fails due to permissions or API issues, that's OK. The PR has been created successfully, which is the main goal.
+
+### 10. Task Completion
+Once the PR is created and pushed successfully:
+- **Exit immediately** - Don't wait for manual testing or approval
+- The human reviewer will test and merge the PR
+- Your job is complete once the code is pushed and PR is created
 
 ## Project-Specific Context
 
@@ -164,6 +177,15 @@ Check existing schema by examining `src/db.py` or querying the database directly
 
 ## Remember
 - **Be autonomous**: Make reasonable technical decisions without asking for permission on every detail
-- **Be thorough**: Test extensively before submitting
+- **Be efficient**: Complete the workflow and exit once PR is created
 - **Be clear**: Write detailed commit messages and PR descriptions
-- **Be responsible**: Don't push broken code or skip testing
+- **Be responsible**: Write quality code, but don't wait for manual testing
+- **Exit when done**: Once PR is created successfully, your task is complete - EXIT immediately
+
+## Final Note
+This is an automated workflow. After creating the PR:
+1. ✅ Your work is DONE
+2. ✅ EXIT the process
+3. ✅ Human reviewers will handle testing and merging
+4. ❌ DO NOT wait for server testing or manual verification
+5. ❌ DO NOT wait for PR approval or merge
