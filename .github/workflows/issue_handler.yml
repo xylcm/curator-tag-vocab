@@ -23,6 +23,7 @@ jobs:
           echo "Issue title: $ISSUE_TITLE"
           echo "Action triggered: $ACTION_TYPE"
           echo "Author: $ISSUE_AUTHOR"
+          echo "Labels: $ISSUE_LABELS"
           python /Users/lcm/Projects/curator-agent-sde/test.py \
             --issue-number "$ISSUE_NUMBER" \
             --action "$ACTION_TYPE" \
@@ -30,4 +31,6 @@ jobs:
             --author "$ISSUE_AUTHOR" \
             --state "$ISSUE_STATE" \
             --url "$ISSUE_URL" \
-            --repo "$REPO_NAME" 
+            --repo "$REPO_NAME" \
+            --body "$ISSUE_BODY" \
+            --labels "$ISSUE_LABELS" 
