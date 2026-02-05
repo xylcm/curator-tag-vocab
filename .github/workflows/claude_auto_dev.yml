@@ -32,7 +32,10 @@ jobs:
           ls -la | head -20
           
           # 让 Claude 自主完成整个开发流程
-          claude -p "@.claude/prd_instructions.md Handle GitHub Issue #$ISSUE_NUMBER"
+          # --permission-mode bypassPermissions: 自动授予文件编辑权限
+          # < /dev/null: 防止等待用户输入
+          claude -p "@.claude/prd_instructions.md Handle GitHub Issue #$ISSUE_NUMBER" \
+            --permission-mode bypassPermissions < /dev/null
 
   # Bug 修复
   bugfix:
@@ -61,4 +64,7 @@ jobs:
           ls -la | head -20
           
           # 让 Claude 自主完成整个修复流程
-          claude -p "@.claude/bugfix_instructions.md Handle GitHub Issue #$ISSUE_NUMBER"
+          # --permission-mode bypassPermissions: 自动授予文件编辑权限
+          # < /dev/null: 防止等待用户输入
+          claude -p "@.claude/bugfix_instructions.md Handle GitHub Issue #$ISSUE_NUMBER" \
+            --permission-mode bypassPermissions < /dev/null

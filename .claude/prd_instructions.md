@@ -48,30 +48,17 @@ git checkout -b claude/prd-issue-{ISSUE_NUMBER}
 - Update `src/db.py` with new database operations
 - Ensure backward compatibility when possible
 
-### 5. Testing & Validation
+### 5. Code Quality Check
 
-**IMPORTANT**: Since you're running in CI/CD environment, skip manual server testing. Instead:
+Before committing, do a quick review:
+- Check your changes for syntax errors
+- Verify logic is correct
+- Ensure code follows project patterns
+- No hardcoded sensitive data
 
-- **Code Review**:
-  - Review your changes for obvious errors
-  - Check syntax and logic
-  - Verify imports and dependencies
-  - Ensure code follows project patterns
+**IMPORTANT**: Do NOT start the Flask server or attempt manual browser testing in CI/CD environment. Human reviewers will test after PR is created.
 
-- **Static Checks**:
-  - Check for Python syntax errors: `python -m py_compile src/**/*.py` (if possible)
-  - Verify file structure is correct
-  - Ensure no sensitive data in code
-
-**Note**: Manual browser testing will be done by human reviewers after PR is created. Your job is to write working code, not to run the server.
-
-### 6. Code Quality
-- Ensure code is readable and well-commented
-- Follow PEP 8 style guidelines for Python
-- Remove any debug print statements
-- Ensure no hardcoded credentials or sensitive data
-
-### 7. Commit Changes
+### 6. Commit Changes
 ```bash
 git add .
 git commit -m "feat: implement {feature_name} (#ISSUE_NUMBER)
@@ -81,7 +68,7 @@ git commit -m "feat: implement {feature_name} (#ISSUE_NUMBER)
 - Tested {list testing done}"
 ```
 
-### 8. Push and Create PR
+### 7. Push and Create PR
 ```bash
 git push origin claude/prd-issue-{ISSUE_NUMBER}
 
@@ -106,7 +93,7 @@ This PR implements the feature requested in #ISSUE_NUMBER.
 {Any important notes for reviewers}"
 ```
 
-### 9. Update Original Issue
+### 8. Update Original Issue
 Try to comment on the issue with:
 ```markdown
 ✅ **Feature implementation completed!**
@@ -114,18 +101,22 @@ Try to comment on the issue with:
 I've created PR #{PR_NUMBER} with the following changes:
 - {Brief summary of implementation}
 
-**Testing Results**: All manual tests passed ✓
-
 Please review the code changes and test the functionality.
 ```
 
-**Important**: If commenting on the issue fails due to permissions or API issues, that's OK. The PR has been created successfully, which is the main goal.
+**Note**: If commenting fails due to permissions, that's acceptable - the PR is the main deliverable.
 
-### 10. Task Completion
-Once the PR is created and pushed successfully:
-- **Exit immediately** - Don't wait for manual testing or approval
-- The human reviewer will test and merge the PR
-- Your job is complete once the code is pushed and PR is created
+### 9. Task Completion Signal
+Once you have successfully:
+1. ✅ Created the branch
+2. ✅ Implemented the changes
+3. ✅ Committed the code
+4. ✅ Pushed to remote
+5. ✅ Created the PR
+
+Then output: `🎉 TASK COMPLETED - PR created successfully`
+
+This signals that the automated workflow is done. Do NOT wait for manual testing, approvals, or merges.
 
 ## Project-Specific Context
 
@@ -175,17 +166,33 @@ Check existing schema by examining `src/db.py` or querying the database directly
 - [ ] PR created with clear description
 - [ ] Original issue updated with PR link
 
-## Remember
-- **Be autonomous**: Make reasonable technical decisions without asking for permission on every detail
-- **Be efficient**: Complete the workflow and exit once PR is created
-- **Be clear**: Write detailed commit messages and PR descriptions
-- **Be responsible**: Write quality code, but don't wait for manual testing
-- **Exit when done**: Once PR is created successfully, your task is complete - EXIT immediately
+## Important Guidelines
 
-## Final Note
-This is an automated workflow. After creating the PR:
-1. ✅ Your work is DONE
-2. ✅ EXIT the process
-3. ✅ Human reviewers will handle testing and merging
-4. ❌ DO NOT wait for server testing or manual verification
-5. ❌ DO NOT wait for PR approval or merge
+### Permission Handling
+- If you need permissions to edit files, request them or use available permission modes
+- Use `--permission-mode bypassPermissions` if needed when running in CI/CD
+- Don't let permission prompts stop your workflow
+
+### Autonomous Decisions
+- Make reasonable technical decisions without asking for permission on every detail
+- If you encounter minor obstacles, work around them
+- Focus on completing the core workflow: branch → code → commit → PR
+
+### When to Stop
+ONLY stop after successfully:
+1. Creating and pushing the feature branch
+2. Creating the Pull Request
+3. (Optionally) commenting on the issue
+
+Do NOT stop if:
+- You haven't created the branch yet
+- You haven't implemented the changes
+- You haven't created the PR
+- You're just asking for file edit permissions
+
+### After PR Creation
+Once PR is created successfully:
+- Output the completion signal
+- Do NOT start servers or attempt manual testing
+- Do NOT wait for human approval or merge
+- Your automated task is complete

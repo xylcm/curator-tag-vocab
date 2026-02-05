@@ -77,23 +77,15 @@ Search for relevant code:
 - **Add safeguards**: Include defensive checks if appropriate
 - **Consider edge cases**: Ensure fix works for all scenarios
 
-### 5. Testing & Verification
+### 5. Code Quality Check
 
-**IMPORTANT**: Since you're running in CI/CD environment, skip manual server testing. Instead:
-
-#### A. Code Review
+Before committing:
 - Review your changes for obvious errors
 - Verify the fix addresses the root cause
 - Check that changes are minimal and focused
-- Ensure no new issues introduced
-
-#### B. Static Analysis
-- Check Python syntax if applicable
-- Verify JavaScript syntax if applicable
 - Ensure imports and references are correct
-- Look for potential runtime errors
 
-**Note**: Manual bug reproduction and browser testing will be done by human reviewers after PR is created.
+**IMPORTANT**: Do NOT start the Flask server or attempt manual testing in CI/CD environment. Human reviewers will verify the fix after PR is created.
 
 ### 6. Code Quality
 - Remove any debug logging added during investigation
@@ -165,20 +157,22 @@ Try to comment on the issue with:
 
 I've created PR #{PR_NUMBER} with the fix.
 
-**Verification**: 
-✅ Code reviewed and fix implemented
-✅ Changes are minimal and focused
-
 Please review and test the fix.
 ```
 
-**Important**: If commenting on the issue fails due to permissions or API issues, that's OK. The PR has been created successfully.
+**Note**: If commenting fails due to permissions, that's acceptable - the PR is the main deliverable.
 
-### 10. Task Completion
-Once the PR is created and pushed successfully:
-- **Exit immediately** - Don't wait for manual testing or approval
-- The human reviewer will reproduce the bug, test the fix, and merge
-- Your job is complete once the code is pushed and PR is created
+### 10. Task Completion Signal
+Once you have successfully:
+1. ✅ Created the branch
+2. ✅ Implemented the fix
+3. ✅ Committed the code
+4. ✅ Pushed to remote
+5. ✅ Created the PR
+
+Then output: `🎉 TASK COMPLETED - PR created successfully`
+
+This signals that the automated workflow is done. Do NOT wait for manual testing, approvals, or merges.
 
 ## Debugging Techniques
 
@@ -272,18 +266,33 @@ SELECT * FROM tags LIMIT 10;
 - [ ] PR created with clear explanation
 - [ ] Original issue updated with fix details
 
-## Remember
-- **Be systematic**: Follow logical debugging process
-- **Be efficient**: Complete the workflow and exit once PR is created
-- **Be transparent**: Document your investigation process
-- **Be focused**: Keep changes minimal and targeted
-- **Be responsible**: Write quality code, but don't wait for manual testing
-- **Exit when done**: Once PR is created successfully, your task is complete - EXIT immediately
+## Important Guidelines
 
-## Final Note
-This is an automated workflow. After creating the PR:
-1. ✅ Your work is DONE
-2. ✅ EXIT the process
-3. ✅ Human reviewers will handle bug verification and merging
-4. ❌ DO NOT wait for server testing or manual verification
-5. ❌ DO NOT wait for PR approval or merge
+### Permission Handling
+- If you need permissions to edit files, request them or use available permission modes
+- Use `--permission-mode bypassPermissions` if needed when running in CI/CD
+- Don't let permission prompts stop your workflow
+
+### Autonomous Decisions
+- Make reasonable technical decisions without asking for permission on every detail
+- If you encounter minor obstacles, work around them
+- Focus on completing the core workflow: branch → fix → commit → PR
+
+### When to Stop
+ONLY stop after successfully:
+1. Creating and pushing the fix branch
+2. Creating the Pull Request
+3. (Optionally) commenting on the issue
+
+Do NOT stop if:
+- You haven't created the branch yet
+- You haven't implemented the fix
+- You haven't created the PR
+- You're just asking for file edit permissions
+
+### After PR Creation
+Once PR is created successfully:
+- Output the completion signal
+- Do NOT start servers or attempt manual testing
+- Do NOT wait for human approval or merge
+- Your automated task is complete
