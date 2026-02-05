@@ -1,0 +1,13 @@
+name: Issue Handler
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  run-local-script:
+    runs-on: [self-hosted, macOS, ARM64, gsd]
+    steps:
+      - name: Run my script
+        run: |
+          echo "Issue number: ${{ github.event.issue.number }}"
+          echo "Action triggered: ${{ github.event.action }}"
