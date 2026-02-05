@@ -32,8 +32,7 @@ jobs:
           ls -la | head -20
           
           # 让 Claude 自主完成整个开发流程
-          claude "@.claude/prd_instructions.md Handle GitHub Issue #$ISSUE_NUMBER" \
-            --non-interactive
+          claude -p "@.claude/prd_instructions.md Handle GitHub Issue #$ISSUE_NUMBER"
 
   # Bug 修复
   bugfix:
@@ -62,5 +61,4 @@ jobs:
           ls -la | head -20
           
           # 让 Claude 自主完成整个修复流程
-          claude "@.claude/bugfix_instructions.md Handle GitHub Issue #$ISSUE_NUMBER" \
-            --non-interactive
+          claude -p "@.claude/bugfix_instructions.md Handle GitHub Issue #$ISSUE_NUMBER"
