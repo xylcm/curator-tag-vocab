@@ -7,11 +7,17 @@ on:
     types: [labeled]
 
 jobs:
-  prd-draft:
-    if: github.event.label.name == 'action:prd-draft'
+  write-prd:
+    if: github.event_name == 'issues' && github.event.label.name == 'status:backlog'
     runs-on: self-hosted
 
     steps:
+      - name: Update Issue labels
+        run: |
+          gh issue edit ${{ github.event.issue.number }} \
+            --remove-label "status:backlog" \
+            --add-label "status:in-progress"
+
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
@@ -21,22 +27,31 @@ jobs:
         shell: zsh {0}
         run: |
           source ~/.zshrc
-          
           export PATH=$PATH:/opt/homebrew/bin:/usr/local/bin
-          ISSUE_NUMBER=${{ github.event.issue.number }}
           
-          claude -p "@.claude/prd_draft_instructions.md Handle GitHub Issue #$ISSUE_NUMBER" \
+          claude -p "@.claude/prd_draft_instructions.md Handle GitHub Issue #${{ github.event.issue.number }}" \
             --permission-mode bypassPermissions < /dev/null
-  prd-development:
-    if: github.event.label.name == 'action:implement'
+
+  implement-prd:
+    if: github.event_name == 'pull_request' && github.event.label.name == 'action:implement'
     runs-on: self-hosted
 
     steps:
-
-      - name: Remove "status:prd-draft" label
+      - name: Resolve Issue Number and update PR labels
+        id: resolve
         run: |
-          echo "Removing 'action:prd-draft' and 'status:prd-review' labels from Issue #${{ github.event.issue.number }}"
-          gh issue edit ${{ github.event.issue.number }} --remove-label "action:prd-draft" --remove-label "status:prd-review"
+          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          ISSUE_NUMBER="${BRANCH_NAME#agent/issue-}"
+
+          if [ -z "$ISSUE_NUMBER" ] || ! [[ "$ISSUE_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "::error::Failed to resolve issue number from PR branch '$BRANCH_NAME' (expected pattern: agent/issue-{N})"
+            exit 1
+          fi
+
+          echo "issue_number=$ISSUE_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "Resolved Issue Number: #$ISSUE_NUMBER"
+
+          gh pr edit ${{ github.event.pull_request.number }} --remove-label "status:prd-review"
 
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -47,9 +62,7 @@ jobs:
         shell: zsh {0}
         run: |
           source ~/.zshrc
-          
           export PATH=$PATH:/opt/homebrew/bin:/usr/local/bin
-          ISSUE_NUMBER=${{ github.event.issue.number }}
           
-          claude -p "@.claude/prd_implement_instructions.md Handle GitHub Issue #$ISSUE_NUMBER" \
+          claude -p "@.claude/prd_implement_instructions.md Implement PR #${{ github.event.pull_request.number }} for Issue #${{ steps.resolve.outputs.issue_number }}, PRD file: @docs/prds/issue-${{ steps.resolve.outputs.issue_number }}.md" \
             --permission-mode bypassPermissions < /dev/null

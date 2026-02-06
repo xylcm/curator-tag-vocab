@@ -141,14 +141,11 @@ gh issue view {ISSUE_NUMBER}
 
 ### 8. 创建 Pull Request
 
-请以需求名称为标题， 创建一个 PR, 用于人类专家对 PRD 文档进行评审。 
+请以需求名称为标题， 创建一个 PR, 用于人类专家对 PRD 文档进行评审。 同时， 为 PR 添加 "status:prd-review" 标签。 
 
 ### 9. 标记 Issue
 
-在 PR 创建成功后， 请对当前 Issue 进行更新， 包括:
-1. 添加 Issue 评论, 告知你已经完成了 PRD 文档撰写。 
-2. 添加 "status:prd-review" 标签。 
-3. 移除 "action:prd-draft" 标签。 
+在 PR 创建成功后， 请在当前 Issue 上添加回复, 告知你已经完成了 PRD 文档撰写。 
 
 ### 10. 完成信号
 

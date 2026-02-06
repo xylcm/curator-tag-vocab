@@ -14,8 +14,8 @@
    ```bash
    git checkout . && git clean -fd
    ```
-2. **标记失败**：`gh issue edit {ISSUE_NUMBER} --add-label "status:failed"`
-3. **说明原因**：在 Issue 中添加评论，清晰说明失败的具体原因
+2. **标记失败**：`gh pr edit {PR_NUMBER} --add-label "status:failed"`
+3. **说明原因**：在 PR 中添加评论，清晰说明失败的具体原因
 4. **终止**：输出 `❌ TASK FAILED` 后退出，不再执行后续步骤
 
 后续流程步骤中以 **→ 失败处理协议** 标记需要触发此协议的位置。
@@ -114,9 +114,9 @@ git pull origin agent/issue-{ISSUE_NUMBER}
 Close Issue #{ISSUE_NUMBER}
 ```
 
-### 7. 更新 Issue 状态
+### 7. 更新 PR 状态
 
-在 Issue 中添加评论告知需求开发完成，并添加标签 `status:code-review`。
+在 PR 中添加评论告知需求开发完成，并添加标签 `status:code-review`。
 
 ### 8. 完成信号
 
@@ -148,5 +148,5 @@ Close Issue #{ISSUE_NUMBER}
 ## Important Guidelines
 
 - 不要等待任何用户输入，基于 PRD 文档自主做出合理的技术决策
-- 完整执行工作流所有步骤后才能停止：切换分支 → 读 PRD → 分析代码 → 实现功能 → 提交推送 → 更新 Issue
-- 代码推送成功并更新 Issue 后即输出完成信号，不要启动服务器或等待人工审批
+- 完整执行工作流所有步骤后才能停止：切换分支 → 读 PRD → 分析代码 → 实现功能 → 提交推送 → 更新 PR label.
+- 代码推送成功并更新 PR label 后即输出完成信号，不要启动服务器或等待人工审批
