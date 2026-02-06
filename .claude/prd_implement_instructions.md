@@ -6,6 +6,20 @@
 
 **核心原则**：严格按照 PRD 描述的功能需求进行开发，遵循项目现有的代码风格和架构模式。
 
+## 失败处理协议
+
+在整个流程中，任何影响结果正确性或完整性的错误（包括但不限于：分支拉取失败、PRD 文档不存在、需求无法实现、git push 失败），一律执行以下步骤后**立即终止**：
+
+1. **清理代码**：撤销所有未提交的变更，确保不留下不完整的实现
+   ```bash
+   git checkout . && git clean -fd
+   ```
+2. **标记失败**：`gh issue edit {ISSUE_NUMBER} --add-label "status:failed"`
+3. **说明原因**：在 Issue 中添加评论，清晰说明失败的具体原因
+4. **终止**：输出 `❌ TASK FAILED` 后退出，不再执行后续步骤
+
+后续流程步骤中以 **→ 失败处理协议** 标记需要触发此协议的位置。
+
 ## Workflow
 
 ### 1. 切换到工作分支
@@ -18,7 +32,7 @@ git checkout agent/issue-{ISSUE_NUMBER}
 git pull origin agent/issue-{ISSUE_NUMBER}
 ```
 
-**如果分支不存在**（即 `git fetch` 失败），请为当前 Issue 添加 "status:failed" 标签， 并回复 Issue 说明失败原因, 同时流程结束。 
+若分支不存在（`git fetch` 失败）→ 失败处理协议。
 
 ### 2. 阅读 PRD 文档
 
@@ -28,7 +42,7 @@ git pull origin agent/issue-{ISSUE_NUMBER}
 - 明确验收标准和边界情况
 - 记录所有需要实现的功能点
 
-如果 PRD 文件不存在，按分支不存在的方式处理：评论原因、打上 `status:failed` 标签后退出。
+若 PRD 文件不存在 → 失败处理协议。
 
 ### 3. 分析项目代码
 
@@ -67,6 +81,8 @@ git pull origin agent/issue-{ISSUE_NUMBER}
 - 如需 schema 变更，更新 `src/db.py` 中的相关操作
 - 确保向后兼容性
 
+若遇到无法解决的技术阻塞 → 失败处理协议。
+
 ### 5. 代码质量检查
 
 提交前进行自检：
@@ -80,11 +96,27 @@ git pull origin agent/issue-{ISSUE_NUMBER}
 
 ### 6. 提交并推送代码
 
-提交当前代码， 并推送到远程仓库。 
+提交代码并推送到远程仓库。若推送失败 → 失败处理协议。
+
+更新已有 PR（该 PR 在 PRD 阶段已创建，不要新建）：
+- 标题：简短、清晰地说明本次需求内容
+  - 功能开发以 `feat:` 开头
+  - Bug 修复以 `bugfix:` 开头
+- 正文模板：
+
+```markdown
+## 需求背景
+<简要说明需求背景>
+
+## 修改方案
+<简要描述开发方案>
+
+Close Issue #{ISSUE_NUMBER}
+```
 
 ### 7. 更新 Issue 状态
 
-在 Issue 中添加评论， 告知需求开发完成， 并添加标签 "status:code-review" 。 
+在 Issue 中添加评论告知需求开发完成，并添加标签 `status:code-review`。
 
 ### 8. 完成信号
 
@@ -113,27 +145,8 @@ git pull origin agent/issue-{ISSUE_NUMBER}
 ### 数据库 Schema
 通过查阅 `src/db.py` 或直接查询数据库了解现有 schema。
 
-## 错误处理
-
-### 分支不存在
-- 在 Issue 中评论说明原因
-- 给 Issue 打上 `status:failed` 标签
-- 立即退出
-
-### PRD 文件不存在
-- 在 Issue 中评论说明原因
-- 给 Issue 打上 `status:failed` 标签
-- 立即退出
-
-### 代码实现遇到阻塞
-- 在 Issue 中评论说明遇到的问题
-- 给 Issue 打上 `status:failed` 标签
-- 不要提交不完整的实现
-
 ## Important Guidelines
 
-- 不要等待任何用户输入，碰到无法恢复的错误，打上 `status:failed` 标签, 回复 Issue 说明失败原因， 然后直接退出
-- 基于 PRD 文档自主做出合理的技术决策
-- 若未碰到失败和异常，应该完成工作流的全部步骤后才能停止：切换分支 → 读 PRD → 分析代码 → 实现功能 → 提交推送 → 更新 Issue
+- 不要等待任何用户输入，基于 PRD 文档自主做出合理的技术决策
+- 完整执行工作流所有步骤后才能停止：切换分支 → 读 PRD → 分析代码 → 实现功能 → 提交推送 → 更新 Issue
 - 代码推送成功并更新 Issue 后即输出完成信号，不要启动服务器或等待人工审批
-- 不要创建 Pull Request，只需推送代码到工作分支
