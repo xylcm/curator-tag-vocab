@@ -32,6 +32,12 @@ jobs:
     runs-on: self-hosted
 
     steps:
+
+      - name: Remove "status:prd-draft" label
+        run: |
+          echo "Removing 'action:prd-draft' and 'status:prd-review' labels from Issue #${{ github.event.issue.number }}"
+          gh issue edit ${{ github.event.issue.number }} --remove-label "action:prd-draft" --remove-label "status:prd-review"
+
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:

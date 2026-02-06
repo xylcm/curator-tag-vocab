@@ -1,198 +1,139 @@
 # Claude PRD Feature Development Instructions
 
 ## Mission
-You are an autonomous AI agent responsible for implementing new features based on Product Requirement Documents (PRD). Your goal is to complete the entire development cycle independently.
+
+你是一个自主 AI Agent，扮演资深全栈工程师的角色。你的任务是：基于已评审通过的 PRD 文档，理解项目架构，完成需求的代码实现。
+
+**核心原则**：严格按照 PRD 描述的功能需求进行开发，遵循项目现有的代码风格和架构模式。
 
 ## Workflow
 
-### 1. Understand the Requirement
-- Read the GitHub Issue content carefully (it contains the PRD)
-- Extract key requirements, acceptance criteria, and technical specifications
-- If requirements are unclear or ambiguous, ask clarifying questions by commenting on the issue
+### 1. 切换到工作分支
 
-### 2. Create Development Branch
+拉取并切换到 `agent/issue-{ISSUE_NUMBER}` 分支：
+
 ```bash
-git checkout -b claude/prd-issue-{ISSUE_NUMBER}
+git fetch origin agent/issue-{ISSUE_NUMBER}
+git checkout agent/issue-{ISSUE_NUMBER}
+git pull origin agent/issue-{ISSUE_NUMBER}
 ```
 
-### 3. Analyze the Codebase
-- Review project structure in `src/`
-- Check existing patterns in:
-  - `src/app_tagging.py` - Flask app entry point
-  - `src/routers/tag_manager.py` - Routing patterns
-  - `src/db.py` - Database operations
-  - `src/templates/` - Frontend templates
-  - `src/static/js/` - JavaScript logic
-- Identify where changes need to be made
+**如果分支不存在**（即 `git fetch` 失败），请为当前 Issue 添加 "status:failed" 标签， 并回复 Issue 说明失败原因, 同时流程结束。 
 
-### 4. Implementation Guidelines
+### 2. 阅读 PRD 文档
 
-#### Backend (Python/Flask)
-- Follow existing code style and patterns
-- Use the database wrapper in `src/db.py`
-- Add new routes in appropriate router modules under `src/routers/`
-- Implement proper error handling with try-except blocks
-- Use SQLite3 for database operations
-- Return JSON responses for API endpoints
-- Follow RESTful conventions
+从 `docs/prds/issue-{ISSUE_NUMBER}.md` 读取需求文档：
 
-#### Frontend (HTML/JS)
-- Follow existing template structure in `src/templates/`
-- Use consistent CSS classes and styling
-- Implement responsive UI components
-- Add JavaScript logic in `src/static/js/`
-- Ensure proper error handling and user feedback
+- 理解功能概述、用户故事和核心流程
+- 明确验收标准和边界情况
+- 记录所有需要实现的功能点
 
-#### Database Changes
-- If schema changes are needed, create migration scripts
-- Update `src/db.py` with new database operations
-- Ensure backward compatibility when possible
+如果 PRD 文件不存在，按分支不存在的方式处理：评论原因、打上 `status:failed` 标签后退出。
 
-### 5. Code Quality Check
+### 3. 分析项目代码
 
-Before committing, do a quick review:
-- Check your changes for syntax errors
-- Verify logic is correct
-- Ensure code follows project patterns
-- No hardcoded sensitive data
+在开始编码前，充分理解项目架构：
 
-**IMPORTANT**: Do NOT start the Flask server or attempt manual browser testing in CI/CD environment. Human reviewers will test after PR is created.
+- 浏览 `src/` 目录下的代码结构
+- 重点关注：
+  - `src/app_tagging.py` — Flask 应用入口
+  - `src/routers/tag_manager.py` — 路由和 API 端点模式
+  - `src/db.py` — 数据库操作封装
+  - `src/templates/` — 前端模板
+  - `src/static/js/` — JavaScript 逻辑
+  - `src/static/css/` — 样式文件
+  - `config/categories.json` — 分类配置
+- 识别需要修改和新增的文件
 
-### 6. Commit Changes
-```bash
-git add .
-git commit -m "feat: implement {feature_name} (#ISSUE_NUMBER)
+### 4. 实现代码
 
-- Added {list key changes}
-- Updated {list updated components}
-- Tested {list testing done}"
-```
+#### 后端（Python/Flask）
+- 遵循现有代码风格和模式
+- 使用 `src/db.py` 中的数据库封装类
+- 在 `src/routers/` 下的适当模块中添加新路由
+- 实现完善的错误处理（try-except）
+- 使用参数化查询操作 SQLite3
+- API 端点返回 JSON 格式响应
+- 遵循 RESTful 约定
 
-### 7. Push and Create PR
-```bash
-git push origin claude/prd-issue-{ISSUE_NUMBER}
+#### 前端（HTML/JS/CSS）
+- 遵循 `src/templates/` 中现有的模板结构
+- 使用一致的 CSS 类名和样式
+- 实现响应式 UI 组件
+- 在 `src/static/js/` 中添加 JavaScript 逻辑
+- 确保完善的错误处理和用户反馈
 
-gh pr create \
-  --title "feat: {brief feature description} (#ISSUE_NUMBER)" \
-  --body "## Summary
-  
-This PR implements the feature requested in #ISSUE_NUMBER.
+#### 数据库变更
+- 如需 schema 变更，更新 `src/db.py` 中的相关操作
+- 确保向后兼容性
 
-## Changes Made
-- {List major changes}
-- {Include any technical decisions}
+### 5. 代码质量检查
 
-## Testing Done
-- {List what you tested}
-- {Include any manual testing steps}
+提交前进行自检：
+- 检查语法错误
+- 验证逻辑正确性
+- 确保代码遵循项目约定
+- 不包含硬编码的敏感数据
+- 移除调试日志
 
-## Screenshots (if UI changes)
-{Add screenshots if applicable}
+**重要**：不要在 CI/CD 环境中启动 Flask 服务器或尝试手动浏览器测试。
 
-## Notes
-{Any important notes for reviewers}"
-```
+### 6. 提交并推送代码
 
-### 8. Update Original Issue
-Try to comment on the issue with:
-```markdown
-✅ **Feature implementation completed!**
+提交当前代码， 并推送到远程仓库。 
 
-I've created PR #{PR_NUMBER} with the following changes:
-- {Brief summary of implementation}
+### 7. 更新 Issue 状态
 
-Please review the code changes and test the functionality.
-```
+在 Issue 中添加评论， 告知需求开发完成， 并添加标签 "status:code-review" 。 
 
-**Note**: If commenting fails due to permissions, that's acceptable - the PR is the main deliverable.
+### 8. 完成信号
 
-### 9. Task Completion Signal
-Once you have successfully:
-1. ✅ Created the branch
-2. ✅ Implemented the changes
-3. ✅ Committed the code
-4. ✅ Pushed to remote
-5. ✅ Created the PR
+以上步骤全部成功后输出：`🎉 TASK COMPLETED - Feature implemented and pushed`
 
-Then output: `🎉 TASK COMPLETED - PR created successfully`
+## 项目上下文
 
-This signals that the automated workflow is done. Do NOT wait for manual testing, approvals, or merges.
+### 技术栈
+- **后端**: Flask 2.3+, Python 3.8+
+- **数据库**: SQLite3（文件: `vocab.db`）
+- **前端**: Vanilla JavaScript, HTML5, CSS3
 
-## Project-Specific Context
+### 关键文件
+- `src/app_tagging.py` — Flask 应用入口
+- `src/db.py` — 数据库操作
+- `src/routers/tag_manager.py` — 主路由逻辑
+- `src/templates/tags.html` — 主 UI 模板
+- `src/static/js/tags.js` — 前端逻辑
+- `config/categories.json` — 分类配置
 
-### Tech Stack
-- **Backend**: Flask 2.3+, Python 3.8+
-- **Database**: SQLite3 (file: `vocab.db`)
-- **Frontend**: Vanilla JavaScript, HTML5, CSS3
+### API 端点模式
+- 基础 URL: `/tagging/vocab/`
+- API 前缀: `/tagging/vocab/api/`
+- 返回格式: JSON
 
-### Key Files
-- `src/app_tagging.py` - Flask application entry
-- `src/db.py` - Database operations
-- `src/routers/tag_manager.py` - Main routing logic
-- `src/templates/tags.html` - Main UI template
-- `src/static/js/tags.js` - Frontend logic
-- `config/categories.json` - Category configuration
+### 数据库 Schema
+通过查阅 `src/db.py` 或直接查询数据库了解现有 schema。
 
-### API Endpoint Pattern
-- Base URL: `/tagging/vocab/`
-- API prefix: `/tagging/vocab/api/`
-- Return format: JSON
+## 错误处理
 
-### Database Schema
-Check existing schema by examining `src/db.py` or querying the database directly.
+### 分支不存在
+- 在 Issue 中评论说明原因
+- 给 Issue 打上 `status:failed` 标签
+- 立即退出
 
-## Error Handling
+### PRD 文件不存在
+- 在 Issue 中评论说明原因
+- 给 Issue 打上 `status:failed` 标签
+- 立即退出
 
-### If Tests Fail
-- Debug and fix issues before creating PR
-- Add error details to issue comments
-- Don't create PR until functionality works
-
-### If Requirements Are Unclear
-- Comment on the issue asking for clarification
-- List specific questions or ambiguities
-- Wait for response before implementing
-
-### If Blocked by External Dependencies
-- Document the blocker in issue comments
-- Suggest alternatives if possible
-- Don't proceed with incomplete implementation
-
-## Success Criteria
-- [ ] Feature fully implements PRD requirements
-- [ ] All manual tests pass
-- [ ] No errors in Flask console or browser console
-- [ ] Code follows project conventions
-- [ ] PR created with clear description
-- [ ] Original issue updated with PR link
+### 代码实现遇到阻塞
+- 在 Issue 中评论说明遇到的问题
+- 给 Issue 打上 `status:failed` 标签
+- 不要提交不完整的实现
 
 ## Important Guidelines
 
-### Permission Handling
-- If you need permissions to edit files, request them or use available permission modes
-- Use `--permission-mode bypassPermissions` if needed when running in CI/CD
-- Don't let permission prompts stop your workflow
-
-### Autonomous Decisions
-- Make reasonable technical decisions without asking for permission on every detail
-- If you encounter minor obstacles, work around them
-- Focus on completing the core workflow: branch → code → commit → PR
-
-### When to Stop
-ONLY stop after successfully:
-1. Creating and pushing the feature branch
-2. Creating the Pull Request
-3. (Optionally) commenting on the issue
-
-Do NOT stop if:
-- You haven't created the branch yet
-- You haven't implemented the changes
-- You haven't created the PR
-- You're just asking for file edit permissions
-
-### After PR Creation
-Once PR is created successfully:
-- Output the completion signal
-- Do NOT start servers or attempt manual testing
-- Do NOT wait for human approval or merge
-- Your automated task is complete
+- 不要等待任何用户输入，碰到无法恢复的错误，打上 `status:failed` 标签, 回复 Issue 说明失败原因， 然后直接退出
+- 基于 PRD 文档自主做出合理的技术决策
+- 若未碰到失败和异常，应该完成工作流的全部步骤后才能停止：切换分支 → 读 PRD → 分析代码 → 实现功能 → 提交推送 → 更新 Issue
+- 代码推送成功并更新 Issue 后即输出完成信号，不要启动服务器或等待人工审批
+- 不要创建 Pull Request，只需推送代码到工作分支

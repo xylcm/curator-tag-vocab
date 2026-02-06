@@ -27,7 +27,7 @@ gh issue view {ISSUE_NUMBER}
 
 ### 3. 创建工作分支
 
-请以 `claude/issue-{ISSUE_NUMBER}` 作为分支名称，从 `master` 分支创建新的分支， 用于完成当前 issue 的需求文档撰写以及后续环节的代码实现。 
+请以 `agent/issue-{ISSUE_NUMBER}` 作为分支名称，从 `master` 分支创建新的分支， 用于完成当前 issue 的需求文档撰写以及后续环节的代码实现。 
 
 ### 4. 撰写 PRD 文档
 
@@ -145,7 +145,10 @@ gh issue view {ISSUE_NUMBER}
 
 ### 9. 标记 Issue
 
-在 PR 创建成功后， 请为当前 Issue 添加 "status:prd-review" 标签, 并添加 Issue 评论, 告知你已经完成了 PRD 文档撰写。 
+在 PR 创建成功后， 请对当前 Issue 进行更新， 包括:
+1. 添加 Issue 评论, 告知你已经完成了 PRD 文档撰写。 
+2. 添加 "status:prd-review" 标签。 
+3. 移除 "action:prd-draft" 标签。 
 
 ### 10. 完成信号
 
