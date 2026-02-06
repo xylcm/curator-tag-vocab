@@ -3,11 +3,12 @@ name: Claude Auto-Dev Agent
 on:
   issues:
     types: [labeled]
+  pull_request:
+    types: [labeled]
 
 jobs:
-  # PRD 功能开发
-  prd-development:
-    if: github.event.label.name == 'gsd:prd'
+  prd-draft:
+    if: github.event.label.name == 'action:prd-draft'
     runs-on: self-hosted
 
     steps:
@@ -16,30 +17,18 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Claude PRD Development
+      - name: Claude PRD Draft
         shell: zsh {0}
         run: |
-          # 加载 zsh 配置以获取环境变量
           source ~/.zshrc
           
           export PATH=$PATH:/opt/homebrew/bin:/usr/local/bin
-          
           ISSUE_NUMBER=${{ github.event.issue.number }}
           
-          echo "🚀 Starting PRD development for Issue #$ISSUE_NUMBER"
-          echo "📂 Working directory: $(pwd)"
-          echo "📋 Files available:"
-          ls -la | head -20
-          
-          # 让 Claude 自主完成整个开发流程
-          # --permission-mode bypassPermissions: 自动授予文件编辑权限
-          # < /dev/null: 防止等待用户输入
-          claude -p "@.claude/prd_instructions.md Handle GitHub Issue #$ISSUE_NUMBER" \
+          claude -p "@.claude/prd_draft_instructions.md Handle GitHub Issue #$ISSUE_NUMBER" \
             --permission-mode bypassPermissions < /dev/null
-
-  # Bug 修复
-  bugfix:
-    if: github.event.label.name == 'gsd:bugfix'
+  prd-development:
+    if: github.event.label.name == 'action:implement'
     runs-on: self-hosted
 
     steps:
@@ -48,23 +37,13 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Claude Bug Fix
+      - name: Claude PRD Implement
         shell: zsh {0}
         run: |
-          # 加载 zsh 配置以获取环境变量
           source ~/.zshrc
           
           export PATH=$PATH:/opt/homebrew/bin:/usr/local/bin
-          
           ISSUE_NUMBER=${{ github.event.issue.number }}
           
-          echo "🐛 Starting bug fix for Issue #$ISSUE_NUMBER"
-          echo "📂 Working directory: $(pwd)"
-          echo "📋 Files available:"
-          ls -la | head -20
-          
-          # 让 Claude 自主完成整个修复流程
-          # --permission-mode bypassPermissions: 自动授予文件编辑权限
-          # < /dev/null: 防止等待用户输入
-          claude -p "@.claude/bugfix_instructions.md Handle GitHub Issue #$ISSUE_NUMBER" \
+          claude -p "@.claude/prd_implement_instructions.md Handle GitHub Issue #$ISSUE_NUMBER" \
             --permission-mode bypassPermissions < /dev/null
