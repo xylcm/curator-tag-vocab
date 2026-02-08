@@ -1,4 +1,12 @@
-# Claude PRD Draft Instructions
+---
+name: write-prd
+description: 阅读 GitHub Issue，理解当前产品，生成结构化的 PRD 文档并创建 PR 提交评审。Use when drafting a PRD from a GitHub issue, or when the user says "写PRD", "draft PRD", or "create PRD".
+argument-hint: "[issue-number]"
+disable-model-invocation: false
+allowed-tools: Bash, Read, Write, Glob, Grep
+---
+
+# PRD Draft Instructions
 
 ## Mission
 
@@ -11,7 +19,7 @@
 ### 1. 读取 GitHub Issue
 
 ```bash
-gh issue view {ISSUE_NUMBER}
+gh issue view $ARGUMENTS
 ```
 
 提取标题、描述、标签、评论中的关键信息。
@@ -27,91 +35,23 @@ gh issue view {ISSUE_NUMBER}
 
 ### 3. 创建工作分支
 
-请以 `agent/issue-{ISSUE_NUMBER}` 作为分支名称，从 `master` 分支创建新的分支， 用于完成当前 issue 的需求文档撰写以及后续环节的代码实现。 
+请以 `agent/issue-$ARGUMENTS` 作为分支名称，从 `master` 分支创建新的分支，用于完成当前 issue 的需求文档撰写以及后续环节的代码实现。
 
 ### 4. 撰写 PRD 文档
 
-创建文件：`docs/prds/issue-{ISSUE_NUMBER}.md`（如目录不存在则先创建）
+创建文件：`docs/prds/issue-$ARGUMENTS.md`（如目录不存在则先创建）
 
 **PRD 以中文撰写。**
 
-首先评估需求复杂度，选择对应的模板格式：
+首先评估需求复杂度，然后**仅加载对应的模板文件**：
 
 #### 复杂度判断
 
-- **简单**：局部、明确的变更，无新用户流程（如改颜色、改文案、调整对齐）
-- **中等**：对现有功能的增强，涉及部分 UI 或交互变更（如新增筛选项、新增导出格式）
-- **复杂**：全新功能或根本性变更，涉及新用户流程、多个 UI 组件或跨功能影响
+- **简单**：局部、明确的变更，无新用户流程（如改颜色、改文案、调整对齐）→ 加载 [template-simple.md](template-simple.md)
+- **中等**：对现有功能的增强，涉及部分 UI 或交互变更（如新增筛选项、新增导出格式）→ 加载 [template-medium.md](template-medium.md)
+- **复杂**：全新功能或根本性变更，涉及新用户流程、多个 UI 组件或跨功能影响 → 加载 [template-complex.md](template-complex.md)
 
-#### 简单需求模板
-
-```markdown
-# {功能名称}
-
-> GitHub Issue: #{ISSUE_NUMBER}
-> 创建日期: {YYYY-MM-DD}
-> 状态: Draft
-
-## 概述
-{1-2 句话说明改什么、为什么改}
-
-## 当前行为
-{用户当前看到/体验到的是什么}
-
-## 期望行为
-{变更后用户应该看到/体验到的是什么}
-
-## 验收标准
-- [ ] {具体的、可验证的条件}
-```
-
-#### 中等需求模板
-
-```markdown
-# {功能名称}
-
-> GitHub Issue: #{ISSUE_NUMBER}
-> 创建日期: {YYYY-MM-DD}
-> 状态: Draft
-
-## 1. 概述
-{这个功能解决什么问题，给用户带来什么价值}
-
-## 2. 用户故事
-- 作为 [角色]，我希望 [做什么]，以便 [达到什么目的]
-
-## 3. 功能描述
-
-### 3.1 入口与触发方式
-{用户如何发现和进入该功能}
-
-### 3.2 核心流程
-{编号步骤描述主流程，每步包含用户操作和系统响应}
-
-### 3.3 界面与交互
-{新增或修改的 UI 元素、视觉状态、交互细节}
-
-## 4. 验收标准
-- [ ] 用户应该能够 ...
-- [ ] 当 ... 时，应该 ...
-```
-
-#### 复杂需求模板
-
-在中等模板基础上，增加以下必填章节：
-
-```markdown
-### 3.4 数据展示
-{展示哪些信息、排序分组规则、空状态展示}
-
-## 4. 边界情况
-{数据为空、操作失败、极端数据量、并发冲突等异常场景}
-
-## 5. 验收标准
-- [ ] 用户应该能够 ...
-- [ ] 当 ... 时，应该 ...
-- [ ] ... 应该在 ... 内完成
-```
+按照模板结构撰写 PRD，将模板中的 `{占位符}` 替换为实际内容。
 
 ### 5. 写作原则
 
@@ -137,23 +77,24 @@ gh issue view {ISSUE_NUMBER}
 
 ### 7. 提交并推送
 
-完成 PRD 文件撰写后， 请提交代码， 并推送至远程仓库。 
+完成 PRD 文件撰写后，请提交代码，并推送至远程仓库。
 
 ### 8. 创建 Pull Request
 
-请以需求名称为标题， 创建一个 PR, 用于人类专家对 PRD 文档进行评审。 同时， 为 PR 添加 "status:prd-review" 标签。 
+请以需求名称为标题，创建一个 PR，用于人类专家对 PRD 文档进行评审。同时，为 PR 添加 "status:prd-review" 标签。
 
 ### 9. 标记 Issue
 
-在 PR 创建成功后， 请在当前 Issue 上添加回复, 告知你已经完成了 PRD 文档撰写。 
+在 PR 创建成功后，请在当前 Issue 上添加回复，告知你已经完成了 PRD 文档撰写。
 
 ### 10. 完成信号
 
 以上步骤全部成功后输出：`🎉 TASK COMPLETED - PRD draft created and PR submitted`
 
 ## Important Guidelines
-- 不要等待任何用户输入，碰到错误或者异常，请直接退出。 
+
+- 不要等待任何用户输入，碰到错误或者异常，请直接退出。
 - 遇到模糊需求时自主做出合理的产品决策，并在 PRD 中标注假设
 - 完成工作流的全部步骤后才能停止：读 Issue → 理解产品 → 写 PRD → 创建 PR
 - PR 创建成功后即输出完成信号，不要启动服务器或等待人工审批
-- 仅可对 PRD 文档进行修改， 不要修改任何其他无关文件。 
+- 仅可对 PRD 文档进行修改，不要修改任何其他无关文件。

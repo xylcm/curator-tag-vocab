@@ -5,11 +5,16 @@ on:
     types: [labeled]
   pull_request:
     types: [labeled]
+  issue_comment:
+    types: [created]
+  pull_request_review:
+    types: [submitted]
 
 jobs:
   write-prd:
     if: github.event_name == 'issues' && github.event.label.name == 'status:backlog'
     runs-on: self-hosted
+    timeout-minutes: 10
 
     steps:
       - name: Update Issue labels
@@ -35,6 +40,7 @@ jobs:
   implement-prd:
     if: github.event_name == 'pull_request' && github.event.label.name == 'action:implement'
     runs-on: self-hosted
+    timeout-minutes: 15
 
     steps:
       - name: Resolve Issue Number and update PR labels
@@ -66,3 +72,62 @@ jobs:
           
           claude -p "@.claude/prd_implement_instructions.md Implement PR #${{ github.event.pull_request.number }} for Issue #${{ steps.resolve.outputs.issue_number }}, PRD file: @docs/prds/issue-${{ steps.resolve.outputs.issue_number }}.md" \
             --permission-mode bypassPermissions < /dev/null
+
+  # Job 3: When an Issue (not PR) receives a new comment, print the comment content
+  issue-comment:
+    if: github.event_name == 'issue_comment' && !github.event.issue.pull_request
+    runs-on: self-hosted
+    timeout-minutes: 5
+
+    steps:
+      - name: Print Issue Comment
+        run: |
+          echo "=== New comment on Issue #${{ github.event.issue.number }} ==="
+          echo "Author: ${{ github.event.comment.user.login }}"
+          echo "Created at: ${{ github.event.comment.created_at }}"
+          echo "---"
+          echo "${{ github.event.comment.body }}"
+
+  # Job 4: When a PR receives a new comment, print the comment content
+  pr-comment:
+    if: github.event_name == 'issue_comment' && github.event.issue.pull_request
+    runs-on: self-hosted
+    timeout-minutes: 5
+
+    steps:
+      - name: Print PR Comment
+        run: |
+          echo "=== New comment on PR #${{ github.event.issue.number }} ==="
+          echo "Author: ${{ github.event.comment.user.login }}"
+          echo "Created at: ${{ github.event.comment.created_at }}"
+          echo "---"
+          echo "${{ github.event.comment.body }}"
+
+  # Job 5: When a PR receives "Request Changes" review, print the message
+  pr-request-changes:
+    if: github.event_name == 'pull_request_review' && github.event.review.state == 'changes_requested'
+    runs-on: self-hosted
+    timeout-minutes: 5
+
+    steps:
+      - name: Print Request Changes
+        run: |
+          echo "=== Changes Requested on PR #${{ github.event.pull_request.number }} ==="
+          echo "Reviewer: ${{ github.event.review.user.login }}"
+          echo "Submitted at: ${{ github.event.review.submitted_at }}"
+          echo "---"
+          echo "${{ github.event.review.body }}"
+
+  # Job 6: When a PR is approved, print "PR Approved"
+  pr-approved:
+    if: github.event_name == 'pull_request_review' && github.event.review.state == 'approved'
+    runs-on: self-hosted
+    timeout-minutes: 5
+
+    steps:
+      - name: Print PR Approved
+        run: |
+          echo "=== PR Approved ==="
+          echo "PR #${{ github.event.pull_request.number }} has been approved."
+          echo "Reviewer: ${{ github.event.review.user.login }}"
+          echo "Submitted at: ${{ github.event.review.submitted_at }}"
