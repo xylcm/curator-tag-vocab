@@ -1,1 +1,230 @@
-/Users/lcm/Projects/curator-ai-dev/.github/workflows/agent.yml
+name: Autonomous Agent Runner
+
+on:
+  issues:
+    types: [labeled]
+  issue_comment:
+    types: [created]
+  pull_request:
+    types: [labeled, unlabeled]
+
+jobs:
+  # ═══════════════════════════════════════════════════════════════════
+  # Job 1: Issue → PR 基础设施 (纯 YAML，不走 Python)
+  # 创建分支和 PR，打上 status:backlog 标签后由 PR 事件触发 Agent
+  # ═══════════════════════════════════════════════════════════════════
+  setup-pr:
+    if: >-
+      github.event_name == 'issues' &&
+      github.event.action == 'labeled' &&
+      github.event.label.name == 'status:backlog'
+
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    runs-on: [self-hosted]
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create Branch and Draft PR
+        env:
+          GH_REPO: ${{ github.repository }}
+        run: |
+          ISSUE_NUMBER="${{ github.event.issue.number }}"
+          BRANCH_NAME="feat/issue-${ISSUE_NUMBER}"
+
+          # 1. 获取 Issue 标题用于 PR
+          ISSUE_TITLE=$(gh issue view "${ISSUE_NUMBER}" --json title --jq '.title')
+
+          # 2. 创建或复用 feature 分支 (幂等)
+          git fetch origin
+          if git ls-remote --heads origin "${BRANCH_NAME}" | grep -q .; then
+            echo "Branch ${BRANCH_NAME} already exists, reusing"
+            git checkout -B "${BRANCH_NAME}" "origin/${BRANCH_NAME}"
+          else
+            echo "Creating branch ${BRANCH_NAME}"
+            git checkout -b "${BRANCH_NAME}" origin/master
+            git commit --allow-empty -m "chore: initialize branch for #${ISSUE_NUMBER}"
+            git push -u origin "${BRANCH_NAME}"
+          fi
+
+          # 3. 创建或复用 draft PR (幂等)
+          PR_NUMBER=$(gh pr list --head "${BRANCH_NAME}" --state open --json number --jq '.[0].number')
+          if [ -n "${PR_NUMBER}" ]; then
+            echo "PR #${PR_NUMBER} already exists, reusing"
+          else
+            echo "Creating draft PR"
+            PR_URL=$(gh pr create \
+              --title "#${ISSUE_NUMBER} ${ISSUE_TITLE}" \
+              --body "Closes #${ISSUE_NUMBER}" \
+              --base master \
+              --head "${BRANCH_NAME}" \
+              --draft)
+            PR_NUMBER=$(echo "${PR_URL}" | grep -oE '/pull/[0-9]+' | grep -oE '[0-9]+')
+          fi
+
+          echo "Setup complete: PR #${PR_NUMBER} on branch ${BRANCH_NAME}"
+
+          # 4. 给 PR 打标签: status:backlog (触发 agent-work job) + fastlane (如果 Issue 有)
+          PR_LABELS="status:backlog"
+          ISSUE_LABELS=$(gh issue view "${ISSUE_NUMBER}" --json labels --jq '.labels[].name')
+          if echo "${ISSUE_LABELS}" | grep -q "^fastlane$"; then
+            PR_LABELS="${PR_LABELS},fastlane"
+          fi
+          # 注意: GITHUB_TOKEN 触发的 label 事件不会再次触发本 workflow，
+          # 因此需要使用 PAT 或 GitHub App token 来触发 agent-work job。
+          gh pr edit "${PR_NUMBER}" --add-label "${PR_LABELS}"
+
+          # 5. 更新 Issue 状态: backlog → in-progress (幂等)
+          gh issue edit "${ISSUE_NUMBER}" \
+            --add-label "status:in-progress" \
+            --remove-label "status:backlog"
+
+      - name: Report Setup Failure
+        if: failure()
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          ISSUE_NUMBER="${{ github.event.issue.number }}"
+          gh issue edit "${ISSUE_NUMBER}" --add-label "human:help-needed"
+
+          COMMENT_FILE=$(mktemp)
+          printf '**PR Setup Failed**\n\nFailed to create branch/PR for this issue.\n\n**Run Details:** %s\n\nPlease review the logs.' "${RUN_URL}" > "${COMMENT_FILE}"
+          gh issue comment "${ISSUE_NUMBER}" --body-file "${COMMENT_FILE}"
+          rm -f "${COMMENT_FILE}"
+
+  # ═══════════════════════════════════════════════════════════════════
+  # Job 2: Agent 智能工作 (Python)
+  # 所有事件最终都归结为 PR 事件，由 Python Agent 处理
+  # ═══════════════════════════════════════════════════════════════════
+  agent-work:
+    if: >-
+      (github.event_name == 'pull_request' && github.event.action == 'labeled' &&
+        (github.event.label.name == 'status:backlog' ||
+         github.event.label.name == 'fastlane' ||
+         startsWith(github.event.label.name, 'stage:'))) ||
+      (github.event_name == 'pull_request' && github.event.action == 'unlabeled' &&
+        github.event.label.name == 'human:review-needed') ||
+      (github.event_name == 'issue_comment' &&
+        github.event.issue.pull_request &&
+        !startsWith(github.event.comment.body, '/ignore'))
+
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    # 使用自托管 runner（单机部署，无需亲和性调度）
+    runs-on: [self-hosted]
+
+    # 防止 Agent 陷入死循环的硬性熔断
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # PR 事件: 直接 checkout PR 的 head 分支
+          # issue_comment 事件: 此处为空，后续步骤会切换到正确分支
+          ref: ${{ github.event.pull_request.head.ref || '' }}
+
+      # issue_comment 事件没有直接的 PR 上下文，需要查询
+      - name: Resolve PR Context (Comment Events)
+        id: comment_pr
+        if: github.event_name == 'issue_comment'
+        env:
+          GH_REPO: ${{ github.repository }}
+        run: |
+          PR_NUMBER="${{ github.event.issue.number }}"
+          BRANCH=$(gh pr view "${PR_NUMBER}" --json headRefName --jq '.headRefName')
+          LABELS=$(gh pr view "${PR_NUMBER}" --json labels --jq '[.labels[].name] | join(",")')
+
+          echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
+          echo "branch_name=${BRANCH}" >> "$GITHUB_OUTPUT"
+          echo "labels=${LABELS}" >> "$GITHUB_OUTPUT"
+
+          # 切换到 PR 的 feature 分支
+          git fetch origin
+          git checkout -B "${BRANCH}" "origin/${BRANCH}"
+          echo "Checked out branch ${BRANCH} for PR #${PR_NUMBER}"
+
+      - name: Run Claude Agent
+        id: run_agent
+        env:
+          WORKSPACE_ROOT: ${{ github.workspace }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          # ── 统一的 PR 事件上下文 ──────────────────────────────
+          # pull_request 事件: 直接从事件获取
+          # issue_comment 事件: 从 comment_pr 步骤获取
+          GITHUB_EVENT_NAME: ${{ github.event_name == 'issue_comment' && 'issue_comment' || 'pull_request' }}
+          EVENT_ACTION: ${{ github.event.action }}
+          EVENT_TRIGGER_LABEL: ${{ github.event.label.name || '' }}
+          PR_NUMBER: ${{ github.event.pull_request.number || steps.comment_pr.outputs.pr_number || '' }}
+          BRANCH_NAME: ${{ github.event.pull_request.head.ref || steps.comment_pr.outputs.branch_name || '' }}
+          LABELS: ${{ (github.event.pull_request && join(github.event.pull_request.labels.*.name, ',')) || steps.comment_pr.outputs.labels || '' }}
+          USER_COMMENT: ${{ github.event.comment.body || '' }}
+        shell: zsh {0}
+        run: |
+          echo "Sourcing .zshrc..."
+          source ~/.zshrc
+          echo "Activating conda environment..."
+          conda activate algo
+          echo "Running Agent..."
+          python3 ~/Projects/autonomous_dev_agent/scripts/start_agent.py
+
+      # 安全兜底: 即使 Python 进程崩溃，也能保证 PR 锁被释放
+      - name: Release Agent Lock (Safety Net)
+        if: always()
+        env:
+          GH_REPO: ${{ github.repository }}
+        run: |
+          # 锁目标始终是 PR
+          LOCK_TARGET="${{ github.event.pull_request.number || steps.comment_pr.outputs.pr_number || '' }}"
+
+          if [ -z "${LOCK_TARGET}" ]; then
+            echo "::warning::Unable to determine PR number for lock release"
+            exit 0
+          fi
+
+          echo "Releasing lock for PR #${LOCK_TARGET}..."
+          if gh issue edit "${LOCK_TARGET}" --remove-label "agent:working" 2>/dev/null; then
+            echo "Agent lock released for PR #${LOCK_TARGET}"
+          else
+            echo "::warning::Lock label may have been already removed"
+          fi
+
+      - name: Report Failure
+        if: failure()
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          REPORT_TARGET="${{ github.event.pull_request.number || steps.comment_pr.outputs.pr_number || '' }}"
+
+          if [ -z "${REPORT_TARGET}" ]; then
+            echo "::warning::Unable to determine PR number for failure report"
+            exit 0
+          fi
+
+          echo "Reporting failure on PR #${REPORT_TARGET}..."
+
+          # 添加 human:help-needed 标签
+          gh issue edit "${REPORT_TARGET}" --add-label "human:help-needed"
+
+          # 发表评论通知人类
+          COMMENT_FILE=$(mktemp)
+          printf '**Agent Execution Failed**\n\nThe autonomous agent encountered an error and requires human intervention.\n\n**Run Details:** %s\n\nPlease review the logs and provide guidance.' "${RUN_URL}" > "${COMMENT_FILE}"
+          gh issue comment "${REPORT_TARGET}" --body-file "${COMMENT_FILE}"
+          rm -f "${COMMENT_FILE}"
+
+          echo "Failure notification sent to PR #${REPORT_TARGET}"
+
