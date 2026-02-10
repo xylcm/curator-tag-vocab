@@ -8,7 +8,7 @@ on:
   pull_request_review_comment:
     types: [created]
   pull_request:
-    types: [labeled, unlabeled]
+    types: [labeled]
 
 jobs:
   # ═══════════════════════════════════════════════════════════════════
@@ -111,8 +111,6 @@ jobs:
     if: >-
       (github.event_name == 'pull_request' && github.event.action == 'labeled' &&
         github.event.label.name == 'stage:ready') ||
-      (github.event_name == 'pull_request' && github.event.action == 'unlabeled' &&
-        github.event.label.name == 'human:review-needed') ||
       (github.event_name == 'issue_comment' &&
         github.event.issue.pull_request &&
         contains(github.event.comment.body, '@agent')) ||
