@@ -179,6 +179,7 @@ jobs:
           LABELS: ${{ (github.event.pull_request && join(github.event.pull_request.labels.*.name, ',')) || steps.comment_pr.outputs.labels || '' }}
           USER_COMMENT: ${{ github.event.comment.body || '' }}
           # ── Review Comment 专属上下文 ──────────────────────────
+          REVIEW_COMMENT_ID: ${{ github.event.comment.id || '' }}
           REVIEW_FILE_PATH: ${{ github.event.comment.path || '' }}
           REVIEW_DIFF_HUNK: ${{ github.event.comment.diff_hunk || '' }}
         shell: zsh {0}
