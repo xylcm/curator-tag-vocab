@@ -74,11 +74,16 @@ jobs:
 
           echo "Setup complete: PR #${PR_NUMBER} on branch ${BRANCH_NAME}"
 
-          # 4. 给 PR 打标签: stage:ready (触发 agent-work job) + fastlane (如果 Issue 有)
+          # 4. 给 PR 打标签: stage:ready (触发 agent-work job) + fastlane/type:* (从 Issue 同步)
           PR_LABELS="stage:ready"
           ISSUE_LABELS=$(gh issue view "${ISSUE_NUMBER}" --json labels --jq '.labels[].name')
           if echo "${ISSUE_LABELS}" | grep -q "^fastlane$"; then
             PR_LABELS="${PR_LABELS},fastlane"
+          fi
+          # 同步 type:* 标签（type:feature / type:bug / type:refactor）
+          TYPE_LABEL=$(echo "${ISSUE_LABELS}" | grep "^type:" | head -n 1)
+          if [ -n "${TYPE_LABEL}" ]; then
+            PR_LABELS="${PR_LABELS},${TYPE_LABEL}"
           fi
           # 注意: GITHUB_TOKEN 触发的 label 事件不会再次触发本 workflow，
           # 因此需要使用 PAT 或 GitHub App token 来触发 agent-work job。
