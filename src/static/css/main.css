@@ -157,6 +157,17 @@ body {
     border-color: #9fceff;
 }
 
+.btn-export {
+    background: #fafafa;
+    color: #6e6e73;
+    border: 1px solid #e0e0e0;
+}
+
+.btn-export:hover {
+    background: #f0f0f0;
+    border-color: #d0d0d0;
+}
+
 .btn-small {
     padding: 8px 14px;
     font-size: 13px;
