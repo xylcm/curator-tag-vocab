@@ -11,7 +11,7 @@ on:
 jobs:
   # ═══════════════════════════════════════════════════════════════════
   # Job 1: Issue → PR 基础设施 (纯 YAML，不走 Python)
-  # 创建分支和 PR，打上 status:backlog 标签后由 PR 事件触发 Agent
+  # 创建分支和 PR，打上 stage:ready 标签后由 PR 事件触发 Agent
   # ═══════════════════════════════════════════════════════════════════
   setup-pr:
     if: >-
@@ -72,8 +72,8 @@ jobs:
 
           echo "Setup complete: PR #${PR_NUMBER} on branch ${BRANCH_NAME}"
 
-          # 4. 给 PR 打标签: status:backlog (触发 agent-work job) + fastlane (如果 Issue 有)
-          PR_LABELS="status:backlog"
+          # 4. 给 PR 打标签: stage:ready (触发 agent-work job) + fastlane (如果 Issue 有)
+          PR_LABELS="stage:ready"
           ISSUE_LABELS=$(gh issue view "${ISSUE_NUMBER}" --json labels --jq '.labels[].name')
           if echo "${ISSUE_LABELS}" | grep -q "^fastlane$"; then
             PR_LABELS="${PR_LABELS},fastlane"
@@ -108,9 +108,7 @@ jobs:
   agent-work:
     if: >-
       (github.event_name == 'pull_request' && github.event.action == 'labeled' &&
-        (github.event.label.name == 'status:backlog' ||
-         github.event.label.name == 'fastlane' ||
-         startsWith(github.event.label.name, 'stage:'))) ||
+        github.event.label.name == 'stage:ready') ||
       (github.event_name == 'pull_request' && github.event.action == 'unlabeled' &&
         github.event.label.name == 'human:review-needed') ||
       (github.event_name == 'issue_comment' &&
