@@ -117,6 +117,11 @@ jobs:
         github.event.issue.pull_request &&
         !startsWith(github.event.comment.body, '/ignore'))
 
+    # 第一层并发控制: 按 PR 编号排队，同一 PR 的多个事件串行执行
+    concurrency:
+      group: pr-${{ github.event.pull_request.number || github.event.issue.number }}
+      cancel-in-progress: false
+
     permissions:
       contents: write
       issues: write
