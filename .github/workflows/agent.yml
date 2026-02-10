@@ -5,6 +5,8 @@ on:
     types: [labeled]
   issue_comment:
     types: [created]
+  pull_request_review_comment:
+    types: [created]
   pull_request:
     types: [labeled, unlabeled]
 
@@ -113,6 +115,8 @@ jobs:
         github.event.label.name == 'human:review-needed') ||
       (github.event_name == 'issue_comment' &&
         github.event.issue.pull_request &&
+        contains(github.event.comment.body, '@agent')) ||
+      (github.event_name == 'pull_request_review_comment' &&
         contains(github.event.comment.body, '@agent'))
 
     # 第一层并发控制: 按 PR 编号排队，同一 PR 的多个事件串行执行
@@ -166,15 +170,18 @@ jobs:
           WORKSPACE_ROOT: ${{ github.workspace }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           # ── 统一的 PR 事件上下文 ──────────────────────────────
-          # pull_request 事件: 直接从事件获取
+          # pull_request / pull_request_review_comment 事件: 直接从事件获取
           # issue_comment 事件: 从 comment_pr 步骤获取
-          GITHUB_EVENT_NAME: ${{ github.event_name == 'issue_comment' && 'issue_comment' || 'pull_request' }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
           EVENT_ACTION: ${{ github.event.action }}
           EVENT_TRIGGER_LABEL: ${{ github.event.label.name || '' }}
           PR_NUMBER: ${{ github.event.pull_request.number || steps.comment_pr.outputs.pr_number || '' }}
           BRANCH_NAME: ${{ github.event.pull_request.head.ref || steps.comment_pr.outputs.branch_name || '' }}
           LABELS: ${{ (github.event.pull_request && join(github.event.pull_request.labels.*.name, ',')) || steps.comment_pr.outputs.labels || '' }}
           USER_COMMENT: ${{ github.event.comment.body || '' }}
+          # ── Review Comment 专属上下文 ──────────────────────────
+          REVIEW_FILE_PATH: ${{ github.event.comment.path || '' }}
+          REVIEW_DIFF_HUNK: ${{ github.event.comment.diff_hunk || '' }}
         shell: zsh {0}
         run: |
           echo "Sourcing .zshrc..."
