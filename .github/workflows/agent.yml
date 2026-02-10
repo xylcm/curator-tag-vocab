@@ -113,7 +113,7 @@ jobs:
         github.event.label.name == 'human:review-needed') ||
       (github.event_name == 'issue_comment' &&
         github.event.issue.pull_request &&
-        !startsWith(github.event.comment.body, '/ignore'))
+        contains(github.event.comment.body, '@agent'))
 
     # 第一层并发控制: 按 PR 编号排队，同一 PR 的多个事件串行执行
     concurrency:
