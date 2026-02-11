@@ -47,11 +47,8 @@ jobs:
 
           # 2. 创建或复用 feature 分支 (幂等)
           git fetch origin
-          if git ls-remote --heads origin "${BRANCH_NAME}" | grep -q .; then
-            echo "Branch ${BRANCH_NAME} already exists, reusing"
-            git checkout -B "${BRANCH_NAME}" "origin/${BRANCH_NAME}"
-          else
-            echo "Creating branch ${BRANCH_NAME}"
+          # 尝试直接切换，失败则创建
+          if ! git checkout -B "${BRANCH_NAME}" "origin/${BRANCH_NAME}" 2>/dev/null; then
             git checkout -b "${BRANCH_NAME}" origin/master
             git commit --allow-empty -m "chore: initialize branch for #${ISSUE_NUMBER}"
             git push -u origin "${BRANCH_NAME}"
@@ -138,6 +135,34 @@ jobs:
     timeout-minutes: 15
 
     steps:
+      # 前置校验: 确保评论中的 @agent 出现在正文而非引用块中
+      # GitHub Actions 的 if 表达式只能做子字符串匹配，无法区分引用 vs 正文，
+      # 因此用 bash 脚本做精确检查：剥离 '> ' 开头的引用行后，正文中必须包含 @agent
+      - name: Validate Comment (Filter Quoted Mentions)
+        id: validate_comment
+        if: github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment'
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        run: |
+          # 移除引用行 (以 > 开头)，只保留正文
+          BODY_WITHOUT_QUOTES=$(echo "${COMMENT_BODY}" | grep -v '^>' || true)
+
+          if echo "${BODY_WITHOUT_QUOTES}" | grep -q '@agent'; then
+            echo "valid=true" >> "$GITHUB_OUTPUT"
+            echo "Comment contains @agent in body text, proceeding"
+          else
+            echo "valid=false" >> "$GITHUB_OUTPUT"
+            echo "Comment only contains @agent in quoted text, skipping"
+          fi
+
+      - name: Skip if Comment Invalid
+        if: |
+          (github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment') &&
+          steps.validate_comment.outputs.valid != 'true'
+        run: |
+          echo "::notice::Skipping: @agent only appeared in quoted text, not a direct mention"
+          exit 1
+
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
@@ -181,6 +206,7 @@ jobs:
           BRANCH_NAME: ${{ github.event.pull_request.head.ref || steps.comment_pr.outputs.branch_name || '' }}
           LABELS: ${{ (github.event.pull_request && join(github.event.pull_request.labels.*.name, ',')) || steps.comment_pr.outputs.labels || '' }}
           USER_COMMENT: ${{ github.event.comment.body || '' }}
+          COMMENT_AUTHOR: ${{ github.event.comment.user.login || '' }}
           # ── Review Comment 专属上下文 ──────────────────────────
           REVIEW_COMMENT_ID: ${{ github.event.comment.id || '' }}
           REVIEW_FILE_PATH: ${{ github.event.comment.path || '' }}
@@ -189,8 +215,6 @@ jobs:
         run: |
           echo "Sourcing .zshrc..."
           source ~/.zshrc
-          echo "Activating conda environment..."
-          conda activate algo
           echo "Running Agent..."
           imagecho-argos
 
@@ -240,4 +264,5 @@ jobs:
           rm -f "${COMMENT_FILE}"
 
           echo "Failure notification sent to PR #${REPORT_TARGET}"
+
 
