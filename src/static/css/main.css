@@ -147,14 +147,14 @@ body {
 }
 
 .btn-info {
-    background: #e3f2ff;
+    background: #ffffff;
     color: #007aff;
-    border: 1px solid #b8dcff;
+    border: 1px solid #007aff;
 }
 
 .btn-info:hover {
-    background: #d0e8ff;
-    border-color: #9fceff;
+    background: #f0f7ff;
+    border-color: #007aff;
 }
 
 .btn-small {
