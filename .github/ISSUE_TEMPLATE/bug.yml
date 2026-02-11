@@ -3,17 +3,22 @@ description: "报告缺陷或异常行为"
 labels: ["type:bug"]
 
 body:
-  - type: markdown
-    attributes:
-      value: |
-        ### 请描述你遇到的问题，建议包含以下信息:
-        - **问题**: 发生了什么？
-        - **复现步骤**: 怎样触发这个问题？
-        - **期望行为**: 正确的表现应该是什么？
-
   - type: textarea
-    id: description
+    id: problem
     attributes:
-      label: 问题描述
+      label: 问题
+      placeholder: 发生了什么？
     validations:
       required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      placeholder: 怎样触发这个问题？
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为
+      placeholder: 正确的表现应该是什么？

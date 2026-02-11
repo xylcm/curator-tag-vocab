@@ -3,17 +3,22 @@ description: "提出代码重构需求"
 labels: ["type:refactor"]
 
 body:
-  - type: markdown
-    attributes:
-      value: |
-        ### 请描述重构需求，建议包含以下信息:
-        - **目标**: 重构想达到什么效果？
-        - **动机**: 当前代码存在什么问题？
-        - **范围**: 涉及哪些文件或模块？
-
   - type: textarea
-    id: description
+    id: goal
     attributes:
-      label: 重构描述
+      label: 目标
+      placeholder: 重构想达到什么效果？
     validations:
       required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: 动机
+      placeholder: 当前代码存在什么问题？
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: 范围
+      placeholder: 涉及哪些文件或模块？

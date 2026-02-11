@@ -3,17 +3,22 @@ description: "提出新功能需求"
 labels: ["type:feature"]
 
 body:
-  - type: markdown
-    attributes:
-      value: |
-        ### 请描述你的需求，建议包含以下信息:
-        - **背景**: 为什么需要这个功能？
-        - **需求**: 具体的功能描述和交互流程
-        - **验收标准**: 怎样算做完了？
-
   - type: textarea
-    id: description
+    id: background
     attributes:
-      label: 需求描述
+      label: 背景
+      placeholder: 为什么需要这个功能？
     validations:
       required: true
+
+  - type: textarea
+    id: requirement
+    attributes:
+      label: 需求
+      placeholder: 具体的功能描述和交互流程
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 验收标准
+      placeholder: 怎样算做完了？
