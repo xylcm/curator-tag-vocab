@@ -1,20 +1,20 @@
 # ═══════════════════════════════════════════════════════════════════
 # Issue → PR 基础设施 (纯 YAML，不走 Python)
-# 创建分支和 PR，打上 stage:ready 标签后由 PR 事件触发 Agent
+# 创建分支和 PR，assign PR 给 Agent 以触发 agent.yml
 #
-# 仅监听 issues:labeled 事件，避免 PR/Comment 事件产生无效运行
+# 仅监听 issues:assigned 事件，避免 PR/Comment 事件产生无效运行
 # ═══════════════════════════════════════════════════════════════════
 name: Setup PR
 
 on:
   issues:
-    types: [labeled]
+    types: [assigned]
 
 jobs:
   setup-pr:
     if: >-
-      github.event.action == 'labeled' &&
-      github.event.label.name == 'status:backlog'
+      github.event.action == 'assigned' &&
+      github.event.assignee.login == 'xylcm'
 
     permissions:
       contents: write
@@ -66,7 +66,7 @@ jobs:
 
           echo "Setup complete: PR #${PR_NUMBER} on branch ${BRANCH_NAME}"
 
-          # 4. 给 PR 打标签: stage:ready (触发 agent-work job) + fastlane/type:* (从 Issue 同步)
+          # 4. 给 PR 打标签 (纯状态标记，使用 GITHUB_TOKEN，不触发 workflow)
           PR_LABELS="stage:ready"
           ISSUE_LABELS=$(gh issue view "${ISSUE_NUMBER}" --json labels --jq '.labels[].name')
           if echo "${ISSUE_LABELS}" | grep -q "^fastlane$"; then
@@ -77,14 +77,17 @@ jobs:
           if [ -n "${TYPE_LABEL}" ]; then
             PR_LABELS="${PR_LABELS},${TYPE_LABEL}"
           fi
-          # 注意: GITHUB_TOKEN 触发的 label 事件不会再次触发 workflow，
-          # 因此需要使用 PAT 或 GitHub App token 来触发 agent.yml 的 agent-work job。
           gh pr edit "${PR_NUMBER}" --add-label "${PR_LABELS}"
 
           # 5. 更新 Issue 状态: backlog → in-progress (幂等)
           gh issue edit "${ISSUE_NUMBER}" \
             --add-label "status:in-progress" \
             --remove-label "status:backlog"
+
+          # 6. 将 PR assign 给 Agent (触发 agent.yml 的 agent-work job)
+          # 注意: GITHUB_TOKEN 触发的 assign 事件不会再次触发 workflow，
+          # 因此需要使用 PAT 或 GitHub App token 来执行此操作。
+          gh pr edit "${PR_NUMBER}" --add-assignee "${github.event.assignee.login}"
 
       - name: Report Setup Failure
         if: failure()
