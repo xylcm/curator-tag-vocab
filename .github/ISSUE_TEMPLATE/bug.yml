@@ -1,0 +1,81 @@
+name: "🐛 Bug Report"
+description: "报告缺陷或异常行为，Agent 将经历 planning → implementation 流程进行修复"
+labels: ["type:bug"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Bug 报告
+
+        请提供尽可能详细的复现信息，Agent 会据此进行根因分析并修复。
+        如果问题原因已明确，可以勾选下方的「快速通道」跳过方案设计阶段直接修复。
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: 问题概述
+      description: "用一两句话简要描述遇到的问题"
+      placeholder: "例: 用户登录后页面白屏，控制台报 TypeError"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: 复现步骤
+      description: "详细列出复现此问题的操作步骤"
+      placeholder: |
+        1. 打开登录页面
+        2. 输入用户名和密码
+        3. 点击「登录」按钮
+        4. 观察到页面白屏
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: 期望行为
+      description: "你期望看到的正确行为是什么？"
+      placeholder: "登录成功后应跳转到用户主页"
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: 实际行为
+      description: "实际发生了什么？请附上错误信息、日志、截图等"
+      placeholder: "页面白屏，控制台报错: TypeError: Cannot read properties of undefined (reading 'name')"
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 环境信息
+      description: "发生问题的运行环境"
+      placeholder: |
+        - OS: macOS 15.1
+        - Python: 3.12
+        - 相关依赖版本: ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: 补充信息
+      description: "任何有助于定位问题的额外信息（相关代码位置、日志片段、截图等）"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: fastlane
+    attributes:
+      label: 快速通道 (Fastlane)
+      description: "勾选后 Agent 将跳过方案设计，直接进入修复阶段。适用于原因明确、修复范围小的简单 Bug。"
+      options:
+        - label: "启用快速通道（跳过 planning 阶段）"
