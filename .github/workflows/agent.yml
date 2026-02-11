@@ -192,7 +192,7 @@ jobs:
           echo "Activating conda environment..."
           conda activate algo
           echo "Running Agent..."
-          python3 ~/Projects/autonomous_dev_agent/scripts/start_agent.py
+          imagecho-argos
 
       # 安全兜底: 即使 Python 进程崩溃，也能保证 PR 锁被释放
       - name: Release Agent Lock (Safety Net)
