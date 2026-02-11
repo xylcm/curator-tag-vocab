@@ -1,71 +1,24 @@
 name: "✨ Feature Request"
-description: "提出新功能需求，Agent 将经历 requirements → planning → implementation 完整流程"
+description: "提出新功能需求"
 labels: ["type:feature"]
 
 body:
-  - type: markdown
-    attributes:
-      value: |
-        ## 新功能需求
-
-        请尽可能清晰地描述你的需求，Agent 会据此进行需求分析、技术方案设计和代码实现。
-        如果任务简单明确，可以勾选下方的「快速通道」跳过需求分析和方案设计阶段。
-
   - type: textarea
-    id: summary
+    id: description
     attributes:
-      label: 功能概述
-      description: "用一两句话简要描述你想要的功能"
-      placeholder: "例: 为用户个人资料页添加头像上传功能"
-    validations:
-      required: true
-
-  - type: textarea
-    id: motivation
-    attributes:
-      label: 背景与动机
-      description: "为什么需要这个功能？它解决了什么问题？"
-      placeholder: "描述当前的痛点或业务场景..."
-    validations:
-      required: true
-
-  - type: textarea
-    id: requirements
-    attributes:
-      label: 详细需求
-      description: "尽可能详细地描述功能的预期行为、用户交互流程、边界条件等"
+      label: 需求描述
+      description: "描述你想要的功能、背景动机和验收标准"
       placeholder: |
+        ## 背景
+        用户目前无法修改个人头像...
+
+        ## 需求
         1. 用户点击头像区域，弹出文件选择器
         2. 支持 JPG/PNG 格式，最大 5MB
         3. 上传后自动裁剪为正方形
-        4. ...
+
+        ## 验收标准
+        - 用户可以上传并预览头像
+        - 相关单元测试通过
     validations:
       required: true
-
-  - type: textarea
-    id: acceptance-criteria
-    attributes:
-      label: 验收标准
-      description: "列出可衡量的验收条件，Agent 会以此作为完成标准"
-      placeholder: |
-        - [ ] 用户可以上传并预览头像
-        - [ ] 上传的图片自动压缩至合理大小
-        - [ ] 相关单元测试通过
-    validations:
-      required: false
-
-  - type: textarea
-    id: additional-context
-    attributes:
-      label: 补充信息
-      description: "任何有助于理解需求的额外信息（截图、参考链接、技术约束等）"
-    validations:
-      required: false
-
-  - type: checkboxes
-    id: fastlane
-    attributes:
-      label: 快速通道 (Fastlane)
-      description: "勾选后 Agent 将跳过需求分析和方案设计，直接进入编码实现阶段。适用于需求明确、改动范围小的简单任务。"
-      options:
-        - label: "启用快速通道（跳过 requirements 和 planning 阶段）"

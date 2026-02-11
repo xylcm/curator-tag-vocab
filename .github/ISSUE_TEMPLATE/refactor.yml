@@ -1,84 +1,22 @@
 name: "♻️ Refactor"
-description: "提出代码重构需求，Agent 将经历 planning → implementation 流程进行重构"
+description: "提出代码重构需求"
 labels: ["type:refactor"]
 
 body:
-  - type: markdown
-    attributes:
-      value: |
-        ## 代码重构
-
-        请描述需要重构的范围和目标，Agent 会据此进行重构方案设计和代码实现。
-        如果重构范围小且方案已明确，可以勾选下方的「快速通道」跳过方案设计阶段。
-
   - type: textarea
-    id: summary
+    id: description
     attributes:
-      label: 重构概述
-      description: "用一两句话简要描述重构的目标"
-      placeholder: "例: 将事件处理逻辑从单文件拆分为独立模块，提高可维护性"
+      label: 重构描述
+      description: "描述重构目标、动机和涉及的范围"
+      placeholder: |
+        ## 目标
+        将事件处理逻辑从单文件拆分为独立模块
+
+        ## 动机
+        当前 agent.py 超过 500 行，职责不清晰，难以测试
+
+        ## 范围
+        - scripts/agent.py — 拆分事件路由和执行逻辑
+        - tests/ — 补充单元测试
     validations:
       required: true
-
-  - type: textarea
-    id: motivation
-    attributes:
-      label: 重构动机
-      description: "为什么需要重构？当前代码存在什么问题？"
-      placeholder: |
-        - 当前 agent.py 文件超过 500 行，职责不清晰
-        - 事件处理和 SDK 调用耦合在一起，难以测试
-        - ...
-    validations:
-      required: true
-
-  - type: textarea
-    id: scope
-    attributes:
-      label: 影响范围
-      description: "列出需要重构的文件、模块或功能区域"
-      placeholder: |
-        - scripts/agent.py — 拆分事件路由和 Agent 执行逻辑
-        - scripts/events.py — 新增事件类型支持
-        - tests/ — 补充相关单元测试
-    validations:
-      required: true
-
-  - type: textarea
-    id: expected-outcome
-    attributes:
-      label: 期望结果
-      description: "重构完成后代码应达到什么状态？"
-      placeholder: |
-        - 每个模块职责单一，不超过 200 行
-        - 新增事件类型只需三步扩展
-        - 测试覆盖率 > 80%
-    validations:
-      required: false
-
-  - type: textarea
-    id: constraints
-    attributes:
-      label: 约束条件
-      description: "重构时需要注意的约束（不能改变的接口、向后兼容要求等）"
-      placeholder: |
-        - 不改变 start_agent.py 的入口签名
-        - 保持与现有 GitHub Actions Workflow 的兼容性
-    validations:
-      required: false
-
-  - type: textarea
-    id: additional-context
-    attributes:
-      label: 补充信息
-      description: "任何有助于理解重构需求的额外信息（参考设计、相关讨论链接等）"
-    validations:
-      required: false
-
-  - type: checkboxes
-    id: fastlane
-    attributes:
-      label: 快速通道 (Fastlane)
-      description: "勾选后 Agent 将跳过方案设计，直接进入实现阶段。适用于方案已明确、影响范围小的简单重构。"
-      options:
-        - label: "启用快速通道（跳过 planning 阶段）"
