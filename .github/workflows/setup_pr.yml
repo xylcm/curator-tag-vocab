@@ -87,7 +87,7 @@ jobs:
           # 6. 将 PR assign 给 Agent (触发 agent.yml 的 agent-work job)
           # 注意: GITHUB_TOKEN 触发的 assign 事件不会再次触发 workflow，
           # 因此需要使用 PAT 或 GitHub App token 来执行此操作。
-          gh pr edit "${PR_NUMBER}" --add-assignee "${github.event.assignee.login}"
+          gh pr edit "${PR_NUMBER}" --add-assignee "xylcm"
 
       - name: Report Setup Failure
         if: failure()
