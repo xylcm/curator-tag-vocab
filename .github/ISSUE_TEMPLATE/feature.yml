@@ -1,24 +1,19 @@
-name: "✨ Feature Request"
+name: "Feature Request"
 description: "提出新功能需求"
 labels: ["type:feature"]
 
 body:
+  - type: markdown
+    attributes:
+      value: |
+        ### 请描述你的需求，建议包含以下信息:
+        - **背景**: 为什么需要这个功能？
+        - **需求**: 具体的功能描述和交互流程
+        - **验收标准**: 怎样算做完了？
+
   - type: textarea
     id: description
     attributes:
       label: 需求描述
-      description: "描述你想要的功能、背景动机和验收标准"
-      placeholder: |
-        ## 背景
-        用户目前无法修改个人头像...
-
-        ## 需求
-        1. 用户点击头像区域，弹出文件选择器
-        2. 支持 JPG/PNG 格式，最大 5MB
-        3. 上传后自动裁剪为正方形
-
-        ## 验收标准
-        - 用户可以上传并预览头像
-        - 相关单元测试通过
     validations:
       required: true

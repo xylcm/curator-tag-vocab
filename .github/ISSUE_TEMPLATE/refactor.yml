@@ -1,22 +1,19 @@
-name: "♻️ Refactor"
+name: "Refactor"
 description: "提出代码重构需求"
 labels: ["type:refactor"]
 
 body:
+  - type: markdown
+    attributes:
+      value: |
+        ### 请描述重构需求，建议包含以下信息:
+        - **目标**: 重构想达到什么效果？
+        - **动机**: 当前代码存在什么问题？
+        - **范围**: 涉及哪些文件或模块？
+
   - type: textarea
     id: description
     attributes:
       label: 重构描述
-      description: "描述重构目标、动机和涉及的范围"
-      placeholder: |
-        ## 目标
-        将事件处理逻辑从单文件拆分为独立模块
-
-        ## 动机
-        当前 agent.py 超过 500 行，职责不清晰，难以测试
-
-        ## 范围
-        - scripts/agent.py — 拆分事件路由和执行逻辑
-        - tests/ — 补充单元测试
     validations:
       required: true
