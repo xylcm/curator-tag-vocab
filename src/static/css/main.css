@@ -27,6 +27,23 @@ body {
     letter-spacing: -0.5px;
 }
 
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.header-top h1 {
+    margin-bottom: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
 .stats {
     display: flex;
     gap: 16px;
@@ -681,7 +698,17 @@ input[type="text"]::placeholder {
     .header {
         padding: 24px 20px 20px 20px;
     }
-    
+
+    .header-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .header-top h1 {
+        margin-bottom: 0;
+    }
+
     .controls {
         padding: 0 20px;
     }
@@ -708,35 +735,45 @@ input[type="text"]::placeholder {
     .header {
         padding: 20px 16px 16px 16px;
     }
-    
+
     .header h1 {
         font-size: 24px;
     }
-    
+
+    .header-actions {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .header-actions .btn {
+        flex: 1;
+        min-width: 120px;
+    }
+
     .controls {
         padding: 0 16px;
     }
-    
+
     .container {
         padding: 0 16px 20px 16px;
     }
-    
+
     .tag-edit-field {
         flex-direction: column;
         align-items: flex-start;
         gap: 6px;
     }
-    
+
     .tag-info-item {
         flex-direction: column;
         align-items: flex-start;
         gap: 4px;
     }
-    
+
     .tag-info-label {
         min-width: auto;
     }
-    
+
     .stats {
         flex-direction: column;
         gap: 10px;
