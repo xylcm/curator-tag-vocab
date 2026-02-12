@@ -22,9 +22,20 @@ body {
 .header h1 {
     font-size: 32px;
     font-weight: 700;
-    margin-bottom: 24px;
     color: #1d1d1f;
     letter-spacing: -0.5px;
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.export-buttons {
+    display: flex;
+    gap: 12px;
 }
 
 .stats {
@@ -681,7 +692,18 @@ input[type="text"]::placeholder {
     .header {
         padding: 24px 20px 20px 20px;
     }
-    
+
+    .header-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .export-buttons {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
     .controls {
         padding: 0 20px;
     }
@@ -708,11 +730,27 @@ input[type="text"]::placeholder {
     .header {
         padding: 20px 16px 16px 16px;
     }
-    
+
     .header h1 {
         font-size: 24px;
     }
-    
+
+    .header-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .export-buttons {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .export-buttons .btn {
+        flex: 1;
+        min-width: 0;
+    }
+
     .controls {
         padding: 0 16px;
     }
