@@ -4,25 +4,30 @@
 
 {% block content %}
 <div class="header">
-    <h1>Curator Tag Vocabulary</h1>
-    
-    <div class="stats">
-        <div class="stat-item">
-            <span class="stat-label">Total Tags</span>
-            <span class="stat-value total" id="stat-total">-</span>
+    <div class="header-left">
+        <h1>Curator Tag Vocabulary</h1>
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-label">Total Tags</span>
+                <span class="stat-value total" id="stat-total">-</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Available</span>
+                <span class="stat-value available" id="stat-available">-</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Unavailable</span>
+                <span class="stat-value unavailable" id="stat-unavailable">-</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Deleted</span>
+                <span class="stat-value deleted" id="stat-deleted">-</span>
+            </div>
         </div>
-        <div class="stat-item">
-            <span class="stat-label">Available</span>
-            <span class="stat-value available" id="stat-available">-</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-label">Unavailable</span>
-            <span class="stat-value unavailable" id="stat-unavailable">-</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-label">Deleted</span>
-            <span class="stat-value deleted" id="stat-deleted">-</span>
-        </div>
+    </div>
+    <div class="header-actions">
+        <button class="btn btn-info" id="export-protobuf-btn">Export Protobuf</button>
+        <button class="btn btn-info" id="export-csv-btn">Export CSV</button>
     </div>
 </div>
 
@@ -60,8 +65,6 @@
 
         <button class="btn btn-primary" id="load-btn">Load Tags</button>
         <button class="btn btn-success" id="add-btn">Add Tag</button>
-        <button class="btn btn-info" id="export-protobuf-btn">Export Protobuf</button>
-        <button class="btn btn-info" id="export-csv-btn">Export CSV</button>
     </div>
 </div>
 
