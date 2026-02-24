@@ -4,7 +4,7 @@
 #
 # 触发方式:
 #   1. PR assigned → 新任务分配 (由 setup_pr.yml 触发)
-#   2. issue_comment → @agent 评论 (人类反馈/审批)
+#   2. issue_comment → /agent 评论 (人类反馈/审批)
 #   3. pull_request_review_comment → 代码行内评论
 # ═══════════════════════════════════════════════════════════════════
 name: Autonomous Agent Runner
@@ -23,7 +23,7 @@ jobs:
       (github.event_name == 'pull_request' && github.event.action == 'assigned') ||
       (github.event_name == 'issue_comment' &&
         github.event.issue.pull_request &&
-        contains(github.event.comment.body, '@agent')) ||
+        contains(github.event.comment.body, '/agent')) ||
       (github.event_name == 'pull_request_review_comment')
 
     # 第一层并发控制: 按 PR 编号排队，同一 PR 的多个事件串行执行
@@ -40,12 +40,12 @@ jobs:
     runs-on: [self-hosted]
 
     # 防止 Agent 陷入死循环的硬性熔断
-    timeout-minutes: 15
+    timeout-minutes: 60
 
     steps:
-      # 前置校验: 确保评论中的 @agent 出现在正文而非引用块中
+      # 前置校验: 确保评论中的 /agent 出现在正文而非引用块中
       # GitHub Actions 的 if 表达式只能做子字符串匹配，无法区分引用 vs 正文，
-      # 因此用 bash 脚本做精确检查：剥离 '> ' 开头的引用行后，正文中必须包含 @agent
+      # 因此用 bash 脚本做精确检查：剥离 '> ' 开头的引用行后，正文中必须包含 /agent
       - name: Validate Comment (Filter Quoted Mentions)
         id: validate_comment
         if: github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment'
@@ -55,12 +55,12 @@ jobs:
           # 移除引用行 (以 > 开头)，只保留正文
           BODY_WITHOUT_QUOTES=$(echo "${COMMENT_BODY}" | grep -v '^>' || true)
 
-          if echo "${BODY_WITHOUT_QUOTES}" | grep -q '@agent'; then
+          if echo "${BODY_WITHOUT_QUOTES}" | grep -q '/agent'; then
             echo "valid=true" >> "$GITHUB_OUTPUT"
-            echo "Comment contains @agent in body text, proceeding"
+            echo "Comment contains /agent in body text, proceeding"
           else
             echo "valid=false" >> "$GITHUB_OUTPUT"
-            echo "Comment only contains @agent in quoted text, skipping"
+            echo "Comment only contains /agent in quoted text, skipping"
           fi
 
       - name: Skip if Comment Invalid
@@ -68,7 +68,7 @@ jobs:
           (github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment') &&
           steps.validate_comment.outputs.valid != 'true'
         run: |
-          echo "::notice::Skipping: @agent only appeared in quoted text, not a direct mention"
+          echo "::notice::Skipping: /agent only appeared in quoted text, not a direct command"
           exit 1
 
       - name: Checkout Repository

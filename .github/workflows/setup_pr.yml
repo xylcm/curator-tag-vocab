@@ -31,6 +31,7 @@ jobs:
           fetch-depth: 0
 
       - name: Create Branch and Draft PR
+        id: setup
         env:
           GH_REPO: ${{ github.repository }}
         run: |
@@ -88,6 +89,10 @@ jobs:
           # 注意: GITHUB_TOKEN 触发的 assign 事件不会再次触发 workflow，
           # 因此需要使用 PAT 或 GitHub App token 来执行此操作。
           gh pr edit "${PR_NUMBER}" --add-assignee "xylcm"
+
+          # 输出变量供后续 step 使用
+          echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
+          echo "issue_title=${ISSUE_TITLE}" >> "$GITHUB_OUTPUT"
 
       - name: Report Setup Failure
         if: failure()
