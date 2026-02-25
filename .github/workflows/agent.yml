@@ -123,8 +123,8 @@ jobs:
         run: |
           echo "Sourcing .zshrc..."
           source ~/.zshrc
-          echo "Running Agent..."
-          imagecho-argos
+          echo "Dry Running Agent..."
+          #imagecho-argos
 
       # 安全兜底: 即使 Python 进程崩溃，也能保证 PR 锁被释放
       - name: Release Agent Lock (Safety Net)
