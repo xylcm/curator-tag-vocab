@@ -1,8 +1,7 @@
 # ═══════════════════════════════════════════════════════════════════
 # Issue → PR 基础设施 (纯 YAML，不走 Python)
-# 创建分支和 PR，assign PR 给 Agent 以触发 Webhook 服务
+# 创建分支和 PR，assign PR 给 Agent 以触发 agent.yml
 #
-# 纯 GitHub API 调用，无需 checkout，运行在 GitHub-hosted runner 上
 # 仅监听 issues:assigned 事件，避免 PR/Comment 事件产生无效运行
 # ═══════════════════════════════════════════════════════════════════
 name: Setup PR
@@ -22,15 +21,18 @@ jobs:
       issues: write
       pull-requests: write
 
-    # 纯 API 调用，无需 self-hosted runner
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted]
     timeout-minutes: 5
 
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Create Branch and Draft PR
         id: setup
         env:
-          GH_TOKEN: ${{ secrets.BOT_PAT }}
           GH_REPO: ${{ github.repository }}
         run: |
           ISSUE_NUMBER="${{ github.event.issue.number }}"
@@ -39,38 +41,16 @@ jobs:
           # 1. 获取 Issue 标题用于 PR
           ISSUE_TITLE=$(gh issue view "${ISSUE_NUMBER}" --json title --jq '.title')
 
-          # 2. 创建或复用 feature 分支（幂等，无需本地 checkout）
-          MASTER_SHA=$(gh api "repos/${GH_REPO}/git/ref/heads/master" --jq '.object.sha')
-          BRANCH_SHA=$(gh api "repos/${GH_REPO}/git/ref/heads/${BRANCH_NAME}" --jq '.object.sha' 2>/dev/null || echo "")
-
-          if [ -z "${BRANCH_SHA}" ]; then
-            echo "Creating new branch ${BRANCH_NAME}"
-          elif [ "${BRANCH_SHA}" = "${MASTER_SHA}" ]; then
-            echo "Branch exists but has no commits ahead of master, will add init commit"
-          else
-            echo "Branch ${BRANCH_NAME} already has commits, reusing"
+          # 2. 创建或复用 feature 分支 (幂等)
+          git fetch origin
+          # 尝试直接切换，失败则创建
+          if ! git checkout -B "${BRANCH_NAME}" "origin/${BRANCH_NAME}" 2>/dev/null; then
+            git checkout -b "${BRANCH_NAME}" origin/master
+            git commit --allow-empty -m "chore: initialize branch for #${ISSUE_NUMBER}"
+            git push -u origin "${BRANCH_NAME}"
           fi
 
-          # 分支不存在或与 master 相同时，创建空 commit 使 PR 可建
-          if [ -z "${BRANCH_SHA}" ] || [ "${BRANCH_SHA}" = "${MASTER_SHA}" ]; then
-            TREE_SHA=$(gh api "repos/${GH_REPO}/git/commits/${MASTER_SHA}" --jq '.tree.sha')
-            NEW_COMMIT_SHA=$(gh api "repos/${GH_REPO}/git/commits" \
-              -f message="chore: initialize branch for #${ISSUE_NUMBER}" \
-              -f tree="${TREE_SHA}" \
-              -f "parents[]=${MASTER_SHA}" \
-              --jq '.sha')
-
-            if [ -z "${BRANCH_SHA}" ]; then
-              gh api "repos/${GH_REPO}/git/refs" \
-                -f ref="refs/heads/${BRANCH_NAME}" \
-                -f sha="${NEW_COMMIT_SHA}"
-            else
-              gh api "repos/${GH_REPO}/git/refs/heads/${BRANCH_NAME}" \
-                -X PATCH -f sha="${NEW_COMMIT_SHA}"
-            fi
-          fi
-
-          # 3. 创建或复用 draft PR（幂等，gh pr create 无需本地仓库）
+          # 3. 创建或复用 draft PR (幂等)
           PR_NUMBER=$(gh pr list --head "${BRANCH_NAME}" --state open --json number --jq '.[0].number')
           if [ -n "${PR_NUMBER}" ]; then
             echo "PR #${PR_NUMBER} already exists, reusing"
@@ -87,24 +67,27 @@ jobs:
 
           echo "Setup complete: PR #${PR_NUMBER} on branch ${BRANCH_NAME}"
 
-          # 4. 给 PR 打标签
+          # 4. 给 PR 打标签 (纯状态标记，使用 GITHUB_TOKEN，不触发 workflow)
           PR_LABELS="stage:ready"
           ISSUE_LABELS=$(gh issue view "${ISSUE_NUMBER}" --json labels --jq '.labels[].name')
           if echo "${ISSUE_LABELS}" | grep -q "^fastlane$"; then
             PR_LABELS="${PR_LABELS},fastlane"
           fi
+          # 同步 type:* 标签（type:feature / type:bug / type:refactor）
           TYPE_LABEL=$(echo "${ISSUE_LABELS}" | grep "^type:" | head -n 1)
           if [ -n "${TYPE_LABEL}" ]; then
             PR_LABELS="${PR_LABELS},${TYPE_LABEL}"
           fi
           gh pr edit "${PR_NUMBER}" --add-label "${PR_LABELS}"
 
-          # 5. 更新 Issue 状态: backlog → in-progress（幂等）
+          # 5. 更新 Issue 状态: backlog → in-progress (幂等)
           gh issue edit "${ISSUE_NUMBER}" \
             --add-label "status:in-progress" \
             --remove-label "status:backlog"
 
-          # 6. 将 PR assign 给 Agent（BOT_PAT 确保触发 Webhook 事件）
+          # 6. 将 PR assign 给 Agent (触发 agent.yml 的 agent-work job)
+          # 注意: GITHUB_TOKEN 触发的 assign 事件不会再次触发 workflow，
+          # 因此需要使用 PAT 或 GitHub App token 来执行此操作。
           gh pr edit "${PR_NUMBER}" --add-assignee "xylcm"
 
           # 输出变量供后续 step 使用
