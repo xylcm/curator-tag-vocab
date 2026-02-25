@@ -39,11 +39,26 @@ jobs:
           # 1. 获取 Issue 标题用于 PR
           ISSUE_TITLE=$(gh issue view "${ISSUE_NUMBER}" --json title --jq '.title')
 
-          # 2. 通过 Git Refs API 创建分支（幂等，无需本地 checkout）
-          MASTER_SHA=$(gh api "repos/${GH_REPO}/git/ref/heads/master" --jq '.object.sha')
-          gh api "repos/${GH_REPO}/git/refs" \
-            -f ref="refs/heads/${BRANCH_NAME}" \
-            -f sha="${MASTER_SHA}" 2>/dev/null || echo "Branch already exists"
+          # 2. 通过 GitHub API 创建分支（幂等，无需本地 checkout）
+          # 需要一个空 commit，否则 PR 会因"no commits between branches"而创建失败
+          BRANCH_EXISTS=$(gh api "repos/${GH_REPO}/git/ref/heads/${BRANCH_NAME}" --jq '.ref' 2>/dev/null || echo "")
+          if [ -z "${BRANCH_EXISTS}" ]; then
+            # 获取 master HEAD commit 及其 tree
+            MASTER_SHA=$(gh api "repos/${GH_REPO}/git/ref/heads/master" --jq '.object.sha')
+            TREE_SHA=$(gh api "repos/${GH_REPO}/git/commits/${MASTER_SHA}" --jq '.tree.sha')
+            # 创建空 commit（与 master 相同的 tree，但产生新的 commit SHA）
+            NEW_COMMIT_SHA=$(gh api "repos/${GH_REPO}/git/commits" \
+              -f message="chore: initialize branch for #${ISSUE_NUMBER}" \
+              -f tree="${TREE_SHA}" \
+              -f "parents[]=${MASTER_SHA}" \
+              --jq '.sha')
+            # 创建指向新 commit 的分支
+            gh api "repos/${GH_REPO}/git/refs" \
+              -f ref="refs/heads/${BRANCH_NAME}" \
+              -f sha="${NEW_COMMIT_SHA}"
+          else
+            echo "Branch already exists"
+          fi
 
           # 3. 创建或复用 draft PR（幂等，gh pr create 无需本地仓库）
           PR_NUMBER=$(gh pr list --head "${BRANCH_NAME}" --state open --json number --jq '.[0].number')
