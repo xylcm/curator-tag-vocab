@@ -30,6 +30,7 @@ jobs:
       - name: Create Branch and Draft PR
         id: setup
         env:
+          GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
           ISSUE_NUMBER="${{ github.event.issue.number }}"
