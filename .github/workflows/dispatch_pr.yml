@@ -1,0 +1,24 @@
+name: Agent Event Relay
+
+on:
+  pull_request:
+    types: [assigned]
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+
+jobs:
+  relay:
+    runs-on: self-hosted
+    steps:
+      - name: Relay event to Marshal
+        env:
+          MARSHAL_URL: ${{ vars.MARSHAL_URL || 'http://localhost:8080' }}
+        run: |
+          curl -sf --max-time 10 \
+            -X POST "${MARSHAL_URL}/dispatch" \
+            -H "Content-Type: application/json" \
+            -H "X-GitHub-Event: ${GITHUB_EVENT_NAME}" \
+            -d @"${GITHUB_EVENT_PATH}"
+
