@@ -149,12 +149,12 @@ body {
 .btn-info {
     background: #f0f8ff;
     color: #007aff;
-    border: 1px solid #d0e8ff;
+    border: 1px solid #b8dcff;
 }
 
 .btn-info:hover {
-    background: #e3f2ff;
-    border-color: #b8dcff;
+    background: #d0e8ff;
+    border-color: #9fceff;
 }
 
 .btn-small {
