@@ -21,37 +21,9 @@
 
 修改 `src/static/css/main.css` 中的 `.btn-info` 类定义：
 
-```css
-/* 修改前 */
-.btn-info {
-    background: #e3f2ff;
-    color: #007aff;
-    border: 1px solid #b8dcff;
-}
-
-.btn-info:hover {
-    background: #d0e8ff;
-    border-color: #9fceff;
-}
-
-/* 修改后 */
-.btn-info {
-    background: #f5f5f5;
-    color: #007aff;
-    border: 1px solid #b8dcff;
-}
-
-.btn-info:hover {
-    background: #e8e8e8;
-    border-color: #9fceff;
-}
-```
-
-**设计说明**：
-- 背景色从 `#e3f2ff` 改为 `#f5f5f5`（浅白色，与页面背景色一致）
-- 文字颜色保持 `#007aff` 不变
-- 边框颜色保持 `#b8dcff` 不变
-- 悬停状态背景色从 `#d0e8ff` 改为 `#e8e8e8`，保持与其他按钮（如 `.btn-secondary`）的悬停效果一致
+- 将 `.btn-info` 的背景色从浅蓝色改为浅白色
+- 调整悬停状态的背景色，保持与其他按钮一致
+- 文字颜色和边框颜色保持不变
 
 ## 3. 影响面分析
 
