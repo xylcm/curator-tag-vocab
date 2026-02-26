@@ -3,7 +3,6 @@
 > GitHub Issue: #50
 > PRD: docs/prds/issue-50.md
 > 创建日期: 2026-02-26
-> 状态: Draft
 
 ## 1. 概述
 
