@@ -1,71 +1,67 @@
-from flask import Blueprint, render_template, jsonify, request, send_file
-from src.db import VocabDB
-from src.protobuf import tags_vocabulary_pb2
-import json
+"""
+标签管理路由 - 处理HTTP请求
+"""
 import os
-from datetime import datetime
 import tempfile
+from flask import Blueprint, render_template, jsonify, request, send_file
+
+from src.dao import TagDAO, DatabaseConnection
+from src.services import TagService, CategoryService, ExportService
+
 
 bp = Blueprint('tag_manager', __name__, url_prefix='/tagging/vocab')
 
-def get_db():
-    return VocabDB()
+
+def _get_services():
+    """获取服务实例"""
+    db = DatabaseConnection()
+    tag_dao = TagDAO(db)
+    tag_service = TagService(tag_dao)
+    category_service = CategoryService()
+    export_service = ExportService(tag_dao, category_service)
+    return tag_service, category_service, export_service
+
 
 @bp.route('/')
 def index():
+    """首页"""
     return render_template('tags.html')
+
 
 @bp.route('/api/categories')
 def get_categories():
-    db = get_db()
-    with db._connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT DISTINCT category 
-            FROM tags_vocab 
-            WHERE category IS NOT NULL AND category != '' AND is_deleted = 0
-            ORDER BY category
-        """)
-        categories = [row['category'] for row in cursor.fetchall()]
+    """获取分类列表"""
+    _, category_service, _ = _get_services()
+    categories = category_service.get_category_names()
     return jsonify({'categories': categories})
+
 
 @bp.route('/api/categories/config')
 def get_categories_config():
-    """返回完整的分类配置（包含翻译等信息）"""
-    config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'config', 'categories.json')
+    """获取完整分类配置"""
+    _, category_service, _ = _get_services()
     try:
-        with open(config_path, 'r', encoding='utf-8') as f:
-            categories_config = json.load(f)
-        return jsonify({'categories': categories_config})
+        categories = category_service.to_dict_list()
+        return jsonify({'categories': categories})
     except Exception as e:
         return jsonify({'error': str(e), 'categories': []}), 500
 
+
 @bp.route('/api/stats')
 def get_stats():
-    db = get_db()
+    """获取统计信息"""
+    tag_service, _, _ = _get_services()
     deleted_filter = request.args.get('deleted', 'active')
-    
-    is_deleted = None
-    if deleted_filter == 'active':
-        is_deleted = 0
-    elif deleted_filter == 'deleted':
-        is_deleted = 1
-    
-    total = db.count(is_deleted=is_deleted)
-    available = db.count(available=1, is_deleted=is_deleted)
-    unavailable = db.count(available=0, is_deleted=is_deleted)
-    deleted = db.count(is_deleted=1)
-    
-    return jsonify({
-        'total': total,
-        'available': available,
-        'unavailable': unavailable,
-        'deleted': deleted
-    })
+    stats = tag_service.get_stats(deleted=deleted_filter)
+    return jsonify(stats)
+
 
 @bp.route('/api/tags')
 def get_tags():
-    db = get_db()
+    """获取标签列表"""
+    tag_service, _, _ = _get_services()
+
+    # 解析查询参数
     available_filter = request.args.get('available', '')
     deleted_filter = request.args.get('deleted', 'active')
     category_filter = request.args.get('category', '')
@@ -74,272 +70,134 @@ def get_tags():
     order = request.args.get('order', 'asc')
     page = int(request.args.get('page', 1))
     limit = int(request.args.get('limit', 100))
-    offset = (page - 1) * limit
-    
-    with db._connection() as conn:
-        cursor = conn.cursor()
-        
-        conditions = []
-        params = []
-        
-        if available_filter == 'available':
-            conditions.append('available = 1')
-        elif available_filter == 'unavailable':
-            conditions.append('available = 0')
-        
-        if deleted_filter == 'active':
-            conditions.append('is_deleted = 0')
-        elif deleted_filter == 'deleted':
-            conditions.append('is_deleted = 1')
-        
-        if category_filter:
-            conditions.append('category = ?')
-            params.append(category_filter)
-        
-        if search_keyword:
-            conditions.append("(tag LIKE ? OR context LIKE ? OR json_extract(translations, '$.zh_CN') LIKE ?)")
-            search_pattern = f'%{search_keyword}%'
-            params.extend([search_pattern, search_pattern, search_pattern])
-        
-        where_clause = ' AND '.join(conditions) if conditions else '1=1'
-        
-        count_query = f"SELECT COUNT(*) as count FROM tags_vocab WHERE {where_clause}"
-        cursor.execute(count_query, tuple(params))
-        total_count = cursor.fetchone()['count']
-        
-        if sort_by == 'tag':
-            order_clause = f'tag {order.upper()}'
-        elif sort_by == 'translation':
-            order_clause = f"json_extract(translations, '$.zh_CN') {order.upper()}"
-        elif sort_by == 'updated_at':
-            order_clause = f'updated_at {order.upper()}'
-        else:
-            order_clause = 'tag ASC'
-        
-        query = f"""
-            SELECT id, tag, context, category, sub_category, translations, available, created_at, updated_at
-            FROM tags_vocab 
-            WHERE {where_clause}
-            ORDER BY {order_clause}
-            LIMIT ? OFFSET ?
-        """
-        params.extend([limit, offset])
-        
-        cursor.execute(query, tuple(params))
-        rows = cursor.fetchall()
-        
-        tags = []
-        import json
-        for row in rows:
-            translations = json.loads(row['translations']) if row['translations'] else {}
-            tags.append({
-                'id': row['id'],
-                'tag': row['tag'],
-                'context': row['context'] or '',
-                'category': row['category'] or '',
-                'sub_category': row['sub_category'] or '',
-                'translations': translations,
-                'available': bool(row['available']),
-                'created_at': row['created_at'],
-                'updated_at': row['updated_at']
-            })
-    
-    total_pages = (total_count + limit - 1) // limit
-    
-    return jsonify({
-        'tags': tags,
-        'page': page,
-        'page_size': limit,
-        'total': total_count,
-        'total_pages': total_pages
-    })
+
+    result = tag_service.list_tags(
+        available=available_filter if available_filter else None,
+        deleted=deleted_filter,
+        category=category_filter if category_filter else None,
+        search_keyword=search_keyword if search_keyword else None,
+        sort_by=sort_by,
+        order=order,
+        page=page,
+        limit=limit
+    )
+
+    return jsonify(result)
+
+
+@bp.route('/api/tags', methods=['POST'])
+def create_tag():
+    """创建新标签"""
+    tag_service, _, _ = _get_services()
+    data = request.json
+
+    if not data or 'tag' not in data:
+        return jsonify({'error': 'Tag name is required'}), 400
+
+    try:
+        tag_id = tag_service.create_tag(
+            tag=data['tag'],
+            context=data.get('context', ''),
+            category=data.get('category', ''),
+            sub_category=data.get('sub_category', ''),
+            translations=data.get('translations', {}),
+            available=data.get('available', True)
+        )
+        return jsonify({'success': True, 'id': tag_id})
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 @bp.route('/api/tags/<int:tag_id>', methods=['PUT'])
 def update_tag(tag_id):
-    db = get_db()
+    """更新标签"""
+    tag_service, _, _ = _get_services()
     data = request.json
-    
+
     if not data:
         return jsonify({'error': 'No data provided'}), 400
-    
+
+    # 构建更新数据
     update_fields = {}
-    
-    if 'tag' in data:
-        update_fields['tag'] = data['tag']
-    
-    if 'context' in data:
-        update_fields['context'] = data['context']
-    
-    if 'category' in data:
-        update_fields['category'] = data['category']
-    
-    if 'sub_category' in data:
-        update_fields['sub_category'] = data['sub_category']
-    
-    if 'translations' in data:
-        update_fields['translations'] = data['translations']
-    
-    if 'available' in data:
-        update_fields['available'] = 1 if data['available'] else 0
-    
+    field_mapping = {
+        'tag': 'tag',
+        'context': 'context',
+        'category': 'category',
+        'sub_category': 'sub_category',
+        'translations': 'translations',
+        'available': 'available'
+    }
+
+    for api_field, service_field in field_mapping.items():
+        if api_field in data:
+            update_fields[service_field] = data[api_field]
+
     if not update_fields:
         return jsonify({'error': 'No valid fields to update'}), 400
-    
-    existing_tag = db.query(record_id=tag_id, fetch_one=True)
-    if not existing_tag:
-        return jsonify({'error': 'Tag not found'}), 404
-    
-    db.update(record_id=tag_id, **update_fields)
-    
-    return jsonify({'success': True})
 
-@bp.route('/api/tags/<int:tag_id>', methods=['DELETE'])
-def delete_tag(tag_id):
-    db = get_db()
-    rows_deleted = db.delete(record_id=tag_id)
-    
-    if rows_deleted > 0:
+    success = tag_service.update_tag(tag_id, **update_fields)
+
+    if success:
         return jsonify({'success': True})
     else:
         return jsonify({'error': 'Tag not found'}), 404
 
-@bp.route('/api/tags', methods=['POST'])
-def create_tag():
-    db = get_db()
-    data = request.json
-    
-    if not data or 'tag' not in data:
-        return jsonify({'error': 'Tag name is required'}), 400
-    
-    tag = data['tag']
-    context = data.get('context', '')
-    category = data.get('category', '')
-    sub_category = data.get('sub_category', '')
-    translations = data.get('translations', {})
-    available = 1 if data.get('available', True) else 0
-    
-    tag_id = db.add(tag=tag, context=context, category=category, sub_category=sub_category, 
-                    translations=translations, available=available)
-    
-    return jsonify({
-        'success': True,
-        'id': tag_id
-    })
+
+@bp.route('/api/tags/<int:tag_id>', methods=['DELETE'])
+def delete_tag(tag_id):
+    """删除标签"""
+    tag_service, _, _ = _get_services()
+    success = tag_service.delete_tag(tag_id)
+
+    if success:
+        return jsonify({'success': True})
+    else:
+        return jsonify({'error': 'Tag not found'}), 404
+
 
 @bp.route('/api/export/protobuf')
 def export_protobuf():
-    """导出 Protobuf 格式的词汇表"""
+    """导出 Protobuf 格式"""
+    _, _, export_service = _get_services()
+
     try:
-        db = get_db()
-        tags = db.query("SELECT * FROM tags_vocab WHERE is_deleted = 0 AND available = 1")
-        
-        # 去重
-        seen_tags = set()
-        unique_tags = []
-        for tag in tags:
-            if tag['tag'] not in seen_tags:
-                seen_tags.add(tag['tag'])
-                unique_tags.append(tag)
-        
-        unique_tags = sorted(unique_tags, key=lambda x: x['tag'])
-        
-        # 创建 protobuf 对象
-        vocab = tags_vocabulary_pb2.TagVocabulary()
-        vocab.version = datetime.now().strftime("%Y%m%d_%H%M%S")
-        vocab.modified_time = datetime.now().isoformat()
-        
-        for tag_data in unique_tags:
-            tag_msg = vocab.tags.add()
-            tag_msg.name = tag_data['tag']
-            tag_msg.context = tag_data.get('context') or ''
-            tag_msg.category = tag_data.get('category') or ''
-            
-            translations = tag_data.get('translations', {})
-            if isinstance(translations, str):
-                translations = json.loads(translations)
-            
-            if translations:
-                for lang_code, translation_text in translations.items():
-                    trans_msg = tag_msg.translations.add()
-                    trans_msg.lang = lang_code
-                    trans_msg.text = translation_text
-        
-        vocab.vocab_size = len(unique_tags)
-        
-        # 添加分类信息
-        config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'config', 'categories.json')
-        with open(config_path, 'r', encoding='utf-8') as f:
-            categories = json.load(f)
-            for i, category in enumerate(categories, 1):
-                category_msg = vocab.categories.add()
-                category_msg.id = category['id']
-                category_msg.order = i
-                category_msg.name = category['category']
-                category_msg.available = category['available']
-                for lang_code, translation_text in category['translations'].items():
-                    trans_msg = category_msg.translations.add()
-                    trans_msg.lang = lang_code
-                    trans_msg.text = translation_text
-        
+        data, filename = export_service.export_to_protobuf()
+
         # 写入临时文件
         temp_file = tempfile.NamedTemporaryFile(mode='wb', delete=False, suffix='.pb')
-        temp_file.write(vocab.SerializeToString())
+        temp_file.write(data)
         temp_file.close()
-        
-        filename = f"tags_vocabulary_{vocab.version}.pb"
-        
+
         return send_file(
             temp_file.name,
             as_attachment=True,
             download_name=filename,
             mimetype='application/octet-stream'
         )
-        
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
 @bp.route('/api/export/csv')
 def export_csv():
-    """导出 CSV 格式的词汇表"""
+    """导出 CSV 格式"""
+    _, _, export_service = _get_services()
+
     try:
-        db = get_db()
-        tags = db.query("SELECT * FROM tags_vocab WHERE is_deleted = 0 AND available = 1")
-        
-        # 去重
-        seen_tags = set()
-        unique_tags = []
-        for tag in tags:
-            if tag['tag'] not in seen_tags:
-                seen_tags.add(tag['tag'])
-                unique_tags.append(tag)
-        
-        unique_tags = sorted(unique_tags, key=lambda x: x['tag'])
-        
-        # 创建临时文件
+        content, filename = export_service.export_to_csv()
+
+        # 写入临时文件
         temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.csv', encoding='utf-8')
-        temp_file.write('en\tzh_CN\tcategory\n')
-        
-        for tag_data in unique_tags:
-            translations = tag_data.get('translations', {})
-            if isinstance(translations, str):
-                translations = json.loads(translations)
-            
-            tag_cn = translations.get('zh_CN', '') if translations else ''
-            tag_en = tag_data['tag']
-            category = tag_data.get('category', '')
-            temp_file.write(f"{tag_en}\t{tag_cn}\t{category}\n")
-        
+        temp_file.write(content)
         temp_file.close()
-        
-        filename = f"tags_vocabulary_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-        
+
         return send_file(
             temp_file.name,
             as_attachment=True,
             download_name=filename,
             mimetype='text/csv'
         )
-        
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
