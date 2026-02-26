@@ -1,1 +1,0 @@
-rsync -avz ~/Projects/curator-tag-vocab lcm@192.168.50.65:~/Projects/
