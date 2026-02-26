@@ -1,0 +1,76 @@
+# 导出按钮背景色调整 — 技术方案
+
+> GitHub Issue: #50
+> PRD: docs/prds/issue-50.md
+> 创建日期: 2026-02-26
+> 状态: Draft
+
+## 1. 概述
+
+将导出按钮（Export Protobuf 和 Export CSV）的背景色从当前的浅蓝色（#e3f2ff）调整为浅白色（#f5f5f5），以改善界面视觉一致性。
+
+## 2. 方案设计
+
+### 2.1 整体思路
+
+导出按钮当前使用 `.btn-info` CSS 类，其背景色为浅蓝色（#e3f2ff）。根据 PRD 要求，需要将其背景色改为浅白色（#f5f5f5），同时保持边框颜色和文字颜色不变。
+
+### 2.2 详细设计
+
+**CSS 变更**：
+
+修改 `src/static/css/main.css` 中的 `.btn-info` 类定义：
+
+```css
+/* 修改前 */
+.btn-info {
+    background: #e3f2ff;
+    color: #007aff;
+    border: 1px solid #b8dcff;
+}
+
+.btn-info:hover {
+    background: #d0e8ff;
+    border-color: #9fceff;
+}
+
+/* 修改后 */
+.btn-info {
+    background: #f5f5f5;
+    color: #007aff;
+    border: 1px solid #b8dcff;
+}
+
+.btn-info:hover {
+    background: #e8e8e8;
+    border-color: #9fceff;
+}
+```
+
+**设计说明**：
+- 背景色从 `#e3f2ff` 改为 `#f5f5f5`（浅白色，与页面背景色一致）
+- 文字颜色保持 `#007aff` 不变
+- 边框颜色保持 `#b8dcff` 不变
+- 悬停状态背景色从 `#d0e8ff` 改为 `#e8e8e8`，保持与其他按钮（如 `.btn-secondary`）的悬停效果一致
+
+## 3. 影响面分析
+
+| 文件/模块 | 变更类型 | 说明 |
+|-----------|---------|------|
+| src/static/css/main.css | 修改 | 修改 `.btn-info` 类的背景色和悬停效果 |
+
+## 4. 实现步骤
+
+1. 修改 `src/static/css/main.css` 中的 `.btn-info` 类，将背景色从 `#e3f2ff` 改为 `#f5f5f5`
+2. 修改 `.btn-info:hover` 的悬停背景色从 `#d0e8ff` 改为 `#e8e8e8`
+3. 本地验证：启动应用，检查导出按钮显示效果
+
+## 5. 测试策略
+
+- **视觉测试**：手动验证 Export Protobuf 和 Export CSV 按钮的背景色显示为浅白色
+- **交互测试**：验证按钮悬停状态效果正常
+- **回归测试**：确认其他使用 `.btn-info` 类的按钮（如有）也符合预期
+
+## 6. 风险与待决事项
+
+- 无已知风险。此变更为纯 CSS 样式调整，不影响功能逻辑。
