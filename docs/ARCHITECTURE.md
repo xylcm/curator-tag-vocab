@@ -6,20 +6,19 @@
 
 ## 架构分层
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      路由层 (Routers)                        │
-│                  处理 HTTP 请求/响应                          │
-├─────────────────────────────────────────────────────────────┤
-│                      服务层 (Services)                       │
-│                  业务逻辑处理                                 │
-├─────────────────────────────────────────────────────────────┤
-│                      数据访问层 (DAO)                        │
-│                  数据库操作封装                               │
-├─────────────────────────────────────────────────────────────┤
-│                      模型层 (Models)                         │
-│                  实体定义和数据结构                            │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph 架构分层
+        direction TB
+        R[路由层<br/>Routers<br/>处理 HTTP 请求/响应]
+        S[服务层<br/>Services<br/>业务逻辑处理]
+        D[数据访问层<br/>DAO<br/>数据库操作封装]
+        M[模型层<br/>Models<br/>实体定义和数据结构]
+    end
+
+    R --> S
+    S --> D
+    D --> M
 ```
 
 ## 目录结构
@@ -153,36 +152,46 @@ def create_tag():
 
 ## 数据流
 
-```
-HTTP Request
-    ↓
-Router (参数解析)
-    ↓
-Service (业务逻辑)
-    ↓
-DAO (数据访问)
-    ↓
-Database
-    ↓
-DAO (结果映射)
-    ↓
-Model (数据封装)
-    ↓
-Service (业务处理)
-    ↓
-Router (响应格式化)
-    ↓
-HTTP Response
+```mermaid
+flowchart LR
+    HTTP_REQ[HTTP Request]
+    ROUTER[Router
+    参数解析]
+    SERVICE[Service
+    业务逻辑]
+    DAO[DAO
+    数据访问]
+    DB[(Database)]
+    HTTP_RES[HTTP Response]
+
+    HTTP_REQ --> ROUTER
+    ROUTER --> SERVICE
+    SERVICE --> DAO
+    DAO --> DB
+    DB --> DAO
+    DAO --> SERVICE
+    SERVICE --> ROUTER
+    ROUTER --> HTTP_RES
 ```
 
 ## 依赖关系
 
-```
-routers → services → dao → models
-            ↓           ↓
-      category_service  database
-            ↓
-      config files
+```mermaid
+flowchart LR
+    R[routers]
+    S[services]
+    D[dao]
+    M[models]
+    CS[category_service]
+    DB[database]
+    CF[config files]
+
+    R --> S
+    S --> D
+    D --> M
+    S --> CS
+    D --> DB
+    CS --> CF
 ```
 
 ## 设计原则
