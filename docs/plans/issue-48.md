@@ -2,7 +2,7 @@
 
 > GitHub Issue: #48
 > PRD: docs/prds/issue-48.md
-> 创建日期: 2025-01-21
+> 创建日期: 2026-02-26
 > 状态: Draft
 
 ## 1. 概述
