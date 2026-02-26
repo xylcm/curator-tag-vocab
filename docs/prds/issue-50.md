@@ -2,7 +2,6 @@
 
 > GitHub Issue: #50
 > 创建日期: 2026-02-26
-> 状态: Draft
 
 ## 概述
 将导出按钮（Export Protobuf 和 Export CSV）的背景色从当前的浅蓝色调整为白色，以改善界面视觉一致性。
