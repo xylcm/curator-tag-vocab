@@ -1,6 +1,8 @@
-name: Agent Event Relay
+name: Coding Agent Dispatch
 
 on:
+  issues:
+    types: [assigned]
   pull_request:
     types: [assigned]
   issue_comment:
@@ -9,10 +11,10 @@ on:
     types: [created]
 
 jobs:
-  relay:
+  dispatch:
     runs-on: self-hosted
     steps:
-      - name: Relay event to Marshal
+      - name: Dispatch event to Marshal
         env:
           MARSHAL_URL: ${{ vars.MARSHAL_URL || 'http://localhost:8080' }}
         run: |
@@ -21,4 +23,3 @@ jobs:
             -H "Content-Type: application/json" \
             -H "X-GitHub-Event: ${GITHUB_EVENT_NAME}" \
             -d @"${GITHUB_EVENT_PATH}"
-
