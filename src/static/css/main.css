@@ -157,6 +157,16 @@ body {
     border-color: #9fceff;
 }
 
+.btn-purple {
+    background: #f3e8ff;
+    border: 1px solid #e0c3fc;
+}
+
+.btn-purple:hover {
+    background: #e0c3fc;
+    border-color: #d4a5f9;
+}
+
 .btn-small {
     padding: 8px 14px;
     font-size: 13px;
