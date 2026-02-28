@@ -3,7 +3,6 @@
 > GitHub Issue: #79
 > PRD: docs/prds/issue-79.md
 > 创建日期: 2026-02-28
-> 状态: Draft
 
 ## 1. 概述
 
