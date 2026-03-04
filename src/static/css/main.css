@@ -157,6 +157,26 @@ body {
     border-color: #9fceff;
 }
 
+/* 导出按钮黄色高亮样式 */
+.btn-export {
+    background: #f7ff07;
+    color: #007aff;
+    border: 1px solid #eeffb8;
+}
+
+.btn-export:hover {
+    background: #e8f500;
+    border-color: #d4dae0;
+}
+
+/* 导出按钮容器 */
+.export-buttons {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    flex-basis: 100%;
+}
+
 .btn-small {
     padding: 8px 14px;
     font-size: 13px;
