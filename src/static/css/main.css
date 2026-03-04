@@ -88,10 +88,10 @@ body {
     padding: 0 32px;
 }
 
-.controls-row-secondary {
+.controls.controls-row-secondary {
     justify-content: flex-end;
     margin-left: auto;
-    margin-right: 0;
+    margin-right: 32px;
 }
 
 .btn {
