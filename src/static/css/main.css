@@ -89,9 +89,7 @@ body {
 }
 
 .controls.controls-row-secondary {
-    justify-content: flex-end !important;
-    margin-left: auto !important;
-    margin-right: 32px !important;
+    justify-content: flex-end;
 }
 
 .btn {
