@@ -173,8 +173,8 @@ body {
 .export-buttons {
     display: flex;
     gap: 12px;
-    width: 100%;
     flex-basis: 100%;
+    justify-content: flex-end;
 }
 
 .btn-small {
