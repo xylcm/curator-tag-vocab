@@ -90,6 +90,8 @@ body {
 
 .controls-row-secondary {
     justify-content: flex-end;
+    margin-left: auto;
+    margin-right: 0;
 }
 
 .btn {
