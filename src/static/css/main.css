@@ -72,6 +72,9 @@ body {
     border-bottom: 1px solid #e0e0e0;
     padding: 16px 0;
     margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .controls {
@@ -82,6 +85,21 @@ body {
     max-width: 1400px;
     margin: 0 auto;
     padding: 0 32px;
+}
+
+.controls-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 32px;
+    width: 100%;
+}
+
+.controls-export {
+    justify-content: flex-end;
 }
 
 .btn {
@@ -155,6 +173,20 @@ body {
 .btn-info:hover {
     background: #d0e8ff;
     border-color: #9fceff;
+}
+
+.btn-export {
+    background: #f7ff07;
+    color: #007aff;
+    border: 1px solid #d4dae0;
+    height: 38px;
+    padding: 10px 21px;
+    border-radius: 6px;
+}
+
+.btn-export:hover {
+    background: #e8f000;
+    border-color: #c0c6cc;
 }
 
 .btn-small {
