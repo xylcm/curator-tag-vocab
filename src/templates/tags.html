@@ -27,9 +27,9 @@
 </div>
 
 <div class="controls-wrapper">
-    <div class="controls">
+    <div class="controls-row controls-main">
         <input type="text" id="search-input" placeholder="Search tags..." style="min-width: 200px;">
-        
+
         <select id="deleted-select">
             <option value="active" selected>Not Deleted</option>
             <option value="all">All</option>
@@ -60,8 +60,10 @@
 
         <button class="btn btn-primary" id="load-btn">Load Tags</button>
         <button class="btn btn-success" id="add-btn">Add Tag</button>
-        <button class="btn btn-info" id="export-protobuf-btn">Export Protobuf</button>
-        <button class="btn btn-info" id="export-csv-btn">Export CSV</button>
+    </div>
+    <div class="controls-row controls-export">
+        <button class="btn btn-export" id="export-protobuf-btn">Export Protobuf</button>
+        <button class="btn btn-export" id="export-csv-btn">Export CSV</button>
     </div>
 </div>
 
