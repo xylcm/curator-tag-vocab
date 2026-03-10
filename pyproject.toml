@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "curator-tag-vocab"
-version = "0.1.0"
-description = "图片标签词库 Web 管理后台"
+version = "0.2.0"
+description = "图片标签词库 Web 管理后台 - 重构版"
 readme = "README.md"
 requires-python = ">=3.8"
 authors = [
@@ -13,16 +13,28 @@ authors = [
 ]
 dependencies = [
     "flask>=2.3.0",
+    "protobuf>=4.0.0",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
+    "pytest-flask>=1.2.0",
 ]
 
+[project.scripts]
+curator-tag-vocab = "curator_tag_vocab.app:main"
+
 [tool.setuptools]
-packages = ["src"]
+packages = ["curator_tag_vocab", "curator_tag_vocab.models", "curator_tag_vocab.repositories", "curator_tag_vocab.services", "curator_tag_vocab.utils", "curator_tag_vocab.api"]
 
 [tool.setuptools.package-data]
-src = ["templates/*.html", "static/**/*"]
+curator_tag_vocab = ["templates/*.html", "static/**/*", "static/css/*.css", "static/js/*.js"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
